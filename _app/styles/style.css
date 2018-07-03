@@ -1,0 +1,148 @@
+/*
+// css theme variables / settings
+
+
+//$font-family:       "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+//$body-color:            #515151;
+//$body-background-color: #fff;
+
+$link-color:            #268bd2;
+
+$headings-color:        #313131;    // h1,h2,h3,h4,h5,h6
+
+$strong-color:          #303030;    // strong
+
+$blockquote-color:        #7a7a7a;  // blockquote
+$blockquote-border-color: #e5e5e5;
+*/
+
+:root {
+    @t-root(fluid);
+    font-family:       serif;
+}
+
+body {
+    @t-base;
+    font-style: normal;
+    font-weight: normal;
+    background-color: #fff;
+    color: #515151;
+}
+
+a {
+    color: #268bd2;
+    text-decoration: none;
+    border-bottom: 1px dashed;
+}
+
+b {
+    color: #303030;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #313131;
+}
+
+h1 {
+    font-size: t-step(6);
+    line-height: 4rem;
+    margin-top: 8rem;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    font-size: t-step(4);
+    margin-top: 5rem;
+    margin-bottom: 1rem;
+}
+
+h3 {
+    font-size: t-step(2);
+    margin-top: 4rem;
+    margin-bottom: 1rem;
+}
+
+h4 {
+    font-size: t-step(1);
+    margin-top: 3rem;
+    margin-bottom: 1rem;
+}
+
+h5 {
+    font-size: t-step(0);
+    margin-top: 5rem;
+    margin-bottom: 1rem;
+}
+
+h6 {
+    font-size: t-step(0);
+    font-style: italic;
+    margin-top: 5rem;
+    margin-bottom: 1rem;
+}
+
+header {
+    margin-bottom: 10rem;
+    text-align: center;
+}
+
+header > h1 {
+    margin-bottom: 0;
+}
+
+header > a {
+    font-size: t-step(-1);
+}
+
+#contents {
+    text-align: center;
+}
+
+#contents ul,
+#contents ol {
+    padding: 0;
+}
+
+#contents li {
+    list-style:none;
+}
+
+article {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    clear: both;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 800px;
+}
+
+article > p {
+    -ms-hyphens: auto;
+    -webkit-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+}
+
+footer {
+    margin-top: 5rem;
+    font-size: t-step(-2);
+    text-align: center;
+}
+
+
+.highlight {
+    font-size: t-step(-1);
+    margin-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}

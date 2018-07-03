@@ -1,0 +1,12 @@
+---
+layout: contents
+---
+
+<!-- cover -->
+<h2>Contents</h2>
+
+<ul>
+{% for chapter in site.chapters %}
+  <li><a href="{{ chapter.id }}.html">{{ chapter.title }}</a></li>
+{% endfor %}
+</ul>

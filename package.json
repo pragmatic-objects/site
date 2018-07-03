@@ -1,0 +1,16 @@
+{
+  "name": "pragmaticobjects.com",
+  "version": "0.0.0",
+  "description": "",
+  "main": "gulpfile.js",
+  "author": "Kapralov Sergey",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.24.5",
+    "gulp": "^4.0.0",
+    "gulp-postcss": "^7.0.1",
+    "gulp-restart": "^0.1.1",
+    "gulp-run": "^1.7.1",
+    "typographist": "^3.1.0"
+  }
+}

@@ -1,0 +1,21 @@
+title: Pragmatic Objects
+subtitle: Pragmatic adaptation of "Elegant Objects" by Kapralov Sergey
+
+collections:
+  chapters:
+      output: true
+
+markdown: kramdown
+
+kramdown:
+  auto_ids: true
+
+exclude:
+- README.md
+- node_modules
+- _app
+- "*.js"
+- "*.json"
+
+safe: true
+lsi: false
