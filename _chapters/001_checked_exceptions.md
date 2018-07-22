@@ -256,8 +256,9 @@ class FracFromFile implements Fraction {
 }
 ```
 
-Suppressing exceptions is just wrong: never use exceptions for control flow (at least until you can). The second is a
-direct contradiction to Yegor's own principles. But it feels less harmful and more sane than the previous two ways.
+Suppressing exceptions is just wrong: never use exceptions for control flow (at least until you can). Wrapping 
+exceptions (like in example above) is a direct contradiction to Yegor's own principles. But it feels less harmful and
+more sane than the previous two ways.
 
 ### Why so?
 
