@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pragmatic Objects</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <!--<link rel="stylesheet" href="/node_modules/typographist-static-devtools/devtools.css">
+    <script type="text/javascript"
+            src="/node_modules/typographist-static-devtools/dist/typographist-static-devtools.min.js" />-->
+</head>
+<body>
+    <header>
+    <h1>Forget about checked exceptions</h1>
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>Checked exceptions vs. unchecked exceptions. I know this kind of discussion is a bit old and raised 
+many times. Someone say checked exceptions are evil. Someone say they are reasonable sometimes. Then suddenly 
+Yegor Bugayenko came with his Elegant Objects and <a href="https://www.yegor256.com/2015/07/28/checked-vs-unchecked-exceptions.html">claimed</a> 
+that it’s actually unchecked exceptions that are evil, and checked exceptions must be used instead.</p>
+
+<p>At first I was convinced. I liked the idea to have a clear mark on unsafe methods, which will say to the client code 
+that it must be prepared to deal with possible errors. But for some reason the rules, outlined in the article, just 
+weren’t working. I mean—at all. No matter how hard I tried, at some point I ended up with 90% of codebase which 
+<code class="highlighter-rouge">throws Exception</code>. After some analysis I came to interesting conclusion: we can argue about “checked vs. unchecked 
+exceptions” in general, but for “Elegant Objects” way of OOP, checked exceptions are just inapplicable. Forget about 
+them.</p>
+
+<p>Consider the following interface:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface Fraction {
+    int numerator();
+    int denominator();
+}
+</code></pre></div></div>
+
+<p>Cosy little interface, with clear meaning and cohesive set of methods. A <a href="https://en.wikipedia.org/wiki/Fraction_(mathematics)">simple fraction</a>. 
+We can easily make some implementations of it for fractures and operations on them.</p>
+
+<p>A fraction with fixed numerator and denominator:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracStatic implements Fraction {
+    private final int numerator;
+    private final int denominator;
+
+    public FracStatic(int numerator, int denominator) {
+        this.numerator = numerator;
+        this.denominator = denominator;
+    }
+
+    public final int numerator() {
+        return numerator;
+    }
+
+    public final int denominator() {
+        return denominator;
+    }
+}
+</code></pre></div></div>
+
+<p>A fraction got from a sum of two fractions:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracSum implements Fraction {
+    private final Fraction left;
+    private final Fraction right;
+
+    public FracSum(Fraction left, Fraction right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    public int numerator() {
+        final int a = left.numerator() * right.denominator();
+        final int b = right.numerator() * left.denominator();
+        return a + b;
+    }
+
+    public int denominator() {
+        return left.denominator() * right.denominator();
+    }
+}
+</code></pre></div></div>
+
+<p>A fraction got from multiplication of two fractions:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracMultiply implements Fraction {
+    private final Fraction left;
+    private final Fraction right;
+
+    public FracMultiply(Fraction left, Fraction right) {
+        this.left = left;
+        this.right = right;
+    }
+
+    public final int numerator() {
+        return left.numerator() * right.numerator();
+    }
+
+    public final int denominator() {
+        return left.denominator() * right.denominator();
+    }
+}
+</code></pre></div></div>
+
+<p>And we can use all of them by composing together in elegant way:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public static void main(String... args) {
+    FracSum sum = new FracSum(
+        new FracStatic(1, 2),
+        new FracStatic(1, 3)
+    );
+    System.out.println(
+        sum.numerator() + "/" + sum.denominator()
+    ); /* 5/6 */
+}
+</code></pre></div></div>
+
+<p>However, all these implementations were rather simple. Let’s try more complex example. What if we need to implement a 
+fraction, parsed from some file contents, for instance:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/**
+ * Fraction, parsed from file contents. Expects a line in format
+ * '[0-9]+/[0-9]+'.
+ */
+class FracFromFile implements Fraction {
+    private final File file;
+
+    public FracFromFile(File file) {
+        this.file = file;
+    }
+
+    public final int numerator() {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[0]
+            );
+        }
+    }
+
+    public final int denominator() {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[1]
+            );
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>The example above won’t even compile. Because calls on <code class="highlighter-rouge">Reader</code> instances may throw checked exceptions. They are 
+unsafe. The same problem awaits us if we decide to implement <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html#sql-speaking-objects">SQL-speaking</a>
+fraction, for instance.</p>
+
+<p>No matter how hard we try, we won’t be able to implement our <code class="highlighter-rouge">Fraction</code> interface for such cases without breaking the
+rules. Unsafe nature of underlying mechanisms like IO streams, NIO streams, JDBC, network sockets 
+immediately makes any implementation that uses them unsafe. This fact forces implementor to follow one of the ways:</p>
+
+<p><strong>Add <code class="highlighter-rouge">throws Exception</code> to the interface method’s declaration?</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface Fraction {
+    int numerator() throws Exception;
+    int denominator() throws Exception;
+}
+
+class FracFromFile implements Fraction {
+    private final File file;
+
+    public FracFromFile(File file) {
+        this.file = file;
+    }
+
+    public final int numerator() throws Exception {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[0]
+            );
+        }
+    }
+
+    public final int denominator() throws Exception {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[1]
+            );
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>Such solution has a domino effect on all implementations: they will use the same “unsafe” declaration even when 
+they are actually safe. Moreover, unsafe nature of <code class="highlighter-rouge">Fraction</code> interface will impact other interfaces, if their 
+implementations use <code class="highlighter-rouge">Fraction</code> instances as method arguments or class fields.</p>
+
+<p><strong>Make a separate interface with unsafe methods, and implement all unsafe classes using <code class="highlighter-rouge">FractionUnsafe</code>?</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface FractionUnsafe {
+    int numerator() throws Exception;
+    int denominator() throws Exception;
+}
+
+class FracFromFile implements FractionUnsafe {
+    private final File file;
+
+    public FracFromFile(File file) {
+        this.file = file;
+    }
+
+    public final int numerator() throws Exception {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[0]
+            );
+        }
+    }
+
+    public final int denominator() throws Exception {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[1]
+            );
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>But what about <code class="highlighter-rouge">FracSum</code> from the initial example? It is sum of <code class="highlighter-rouge">Fraction</code>’s, not <code class="highlighter-rouge">FractionUnsafe</code>’s. In other words, 
+such path severely harms polymorphism: classes which uses <code class="highlighter-rouge">Fraction</code> as method arguments or class fields won’t be 
+applicable for classes implemented from <code class="highlighter-rouge">FractionUnsafe</code>.</p>
+
+<p><strong>Be a sinner, by suppressing exceptions, or wrapping them to runtime exceptions?</strong></p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracFromFile implements Fraction {
+    private final File file;
+
+    public FracFromFile(File file) {
+        this.file = file;
+    }
+
+    public final int numerator() {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[0]
+            );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public final int denominator() {
+        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            return Integer.parseInt(
+                reader.readLine().split("/")[1]
+            );
+        } catch(Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>Suppressing exceptions is just wrong: never use exceptions for control flow (at least until you can). Wrapping 
+exceptions (like in example above) is a direct contradiction to Yegor’s own principles. But it feels less harmful and
+more sane than the previous two ways.</p>
+
+<h3 id="why-so">Why so?</h3>
+
+<p>Checked interfaces has one problem, and this problem neglects all the benefits Yegor outlined in 
+his blogpost. The problem is—when in some interface we define a fact that some method is safe or unsafe, we make an
+implicit assumption on the future implementations’ internals. Usually such details are supposed to be encapsulated. 
+This leads to inflexible interfaces, which are hard to extend. And it additionally couples the objects to each other.</p>
+
+<p>And what for? Why client code should care about possible failures from the object it communicates with, if it is not
+supposed to handle them? Flow control through exceptions is evil, nobody cancelled this rule. So if client code cannot 
+control exceptional situations, what is the reason to notify clients of some class of their presence?</p>
+
+<p>To say more, is there such differentiation as safe or unsafe code? Let’s check this example:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracFromString implements Fraction {
+    private final String str;
+
+    public FracFromString(String str) {
+        this.str = str;
+    }
+
+    public final int numerator() {
+        return Integer.parseInt(str.split("/")[0]);
+    }
+
+    public final int denominator() {
+        return Integer.parseInt(str.split("/")[1]);
+    }
+}
+</code></pre></div></div>
+
+<p>It’s fraction too. It’s like <code class="highlighter-rouge">FracFromFile</code>, but parses string instead of file. It will compile as-is, but it has plenty
+of ways to fail. The failure may be trivial, like <code class="highlighter-rouge">NullPointerException</code> on attempt to parse null, or some 
+parsing exception on empty or improperly-formatted string. Or something more dreadful may happen, like 
+<code class="highlighter-rouge">OutOfMemoryError</code>. Who knows? So is there any code which can be considered safe?</p>
+
+<p>Forget about checked exceptions. Always panic through runtime exceptions when you code in “Elegant” way. 
+Consider no code as safe, it is only honest.</p>
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2018 - Kapralov Sergey</p>
+    </footer>
+    <!--<script>
+        var button = new RhythmToggleButton();
+        button.addTo("body");
+    </script>-->
+</body>
+</html>
