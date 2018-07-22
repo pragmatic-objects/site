@@ -4,9 +4,7 @@
     <meta charset="utf-8">
     <title>Pragmatic Objects</title>
     <link rel="stylesheet" type="text/css" href="/style.css">
-    <!--<link rel="stylesheet" href="/node_modules/typographist-static-devtools/devtools.css">
-    <script type="text/javascript"
-            src="/node_modules/typographist-static-devtools/dist/typographist-static-devtools.min.js" />-->
+    <link rel="stylesheet" type="text/css" href="/hl.css">
 </head>
 <body>
     <header>
@@ -28,10 +26,10 @@ them.</p>
 
 <p>Consider the following interface:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface Fraction {
-    int numerator();
-    int denominator();
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>Cosy little interface, with clear meaning and cohesive set of methods. A <a href="https://en.wikipedia.org/wiki/Fraction_(mathematics)">simple fraction</a>. 
@@ -39,112 +37,114 @@ We can easily make some implementations of it for fractures and operations on th
 
 <p>A fraction with fixed numerator and denominator:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracStatic implements Fraction {
-    private final int numerator;
-    private final int denominator;
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracStatic</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">;</span>
 
-    public FracStatic(int numerator, int denominator) {
-        this.numerator = numerator;
-        this.denominator = denominator;
-    }
+    <span class="kd">public</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="kt">int</span> <span class="n">numerator</span><span class="o">,</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">numerator</span> <span class="o">=</span> <span class="n">numerator</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">denominator</span> <span class="o">=</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        return numerator;
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        return denominator;
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>A fraction got from a sum of two fractions:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracSum implements Fraction {
-    private final Fraction left;
-    private final Fraction right;
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracSum</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">;</span>
 
-    public FracSum(Fraction left, Fraction right) {
-        this.left = left;
-        this.right = right;
-    }
+    <span class="kd">public</span> <span class="nf">FracSum</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">left</span><span class="o">,</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public int numerator() {
-        final int a = left.numerator() * right.denominator();
-        final int b = right.numerator() * left.denominator();
-        return a + b;
-    }
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public int denominator() {
-        return left.denominator() * right.denominator();
-    }
-}
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>A fraction got from multiplication of two fractions:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracMultiply implements Fraction {
-    private final Fraction left;
-    private final Fraction right;
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracMultiply</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">;</span>
 
-    public FracMultiply(Fraction left, Fraction right) {
-        this.left = left;
-        this.right = right;
-    }
+    <span class="kd">public</span> <span class="nf">FracMultiply</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">left</span><span class="o">,</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        return left.numerator() * right.numerator();
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">numerator</span><span class="o">();</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        return left.denominator() * right.denominator();
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>And we can use all of them by composing together in elegant way:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public static void main(String... args) {
-    FracSum sum = new FracSum(
-        new FracStatic(1, 2),
-        new FracStatic(1, 3)
-    );
-    System.out.println(
-        sum.numerator() + "/" + sum.denominator()
-    ); /* 5/6 */
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Main</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">...</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">FracSum</span> <span class="n">sum</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span>
+            <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
+        <span class="o">);</span>
+        <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span>
+            <span class="n">sum</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">+</span> <span class="s">"/"</span> <span class="o">+</span> <span class="n">sum</span><span class="o">.</span><span class="na">denominator</span><span class="o">()</span>
+        <span class="o">);</span> <span class="cm">/* 5/6 */</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>However, all these implementations were rather simple. Let’s try more complex example. What if we need to implement a 
 fraction, parsed from some file contents, for instance:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/**
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
  * Fraction, parsed from file contents. Expects a line in format
  * '[0-9]+/[0-9]+'.
- */
-class FracFromFile implements Fraction {
-    private final File file;
+ */</span>
+<span class="kd">class</span> <span class="nc">FracFromFile</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">;</span>
 
-    public FracFromFile(File file) {
-        this.file = file;
-    }
+    <span class="kd">public</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[0]
-            );
-        }
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[1]
-            );
-        }
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>The example above won’t even compile. Because calls on <code class="highlighter-rouge">Reader</code> instances may throw checked exceptions. They are 
@@ -157,34 +157,34 @@ immediately makes any implementation that uses them unsafe. This fact forces imp
 
 <p><strong>Add <code class="highlighter-rouge">throws Exception</code> to the interface method’s declaration?</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface Fraction {
-    int numerator() throws Exception;
-    int denominator() throws Exception;
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">;</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">;</span>
+<span class="o">}</span>
 
-class FracFromFile implements Fraction {
-    private final File file;
+<span class="kd">class</span> <span class="nc">FracFromFile</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">;</span>
 
-    public FracFromFile(File file) {
-        this.file = file;
-    }
+    <span class="kd">public</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() throws Exception {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[0]
-            );
-        }
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
 
-    public final int denominator() throws Exception {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[1]
-            );
-        }
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>Such solution has a domino effect on all implementations: they will use the same “unsafe” declaration even when 
@@ -193,34 +193,34 @@ implementations use <code class="highlighter-rouge">Fraction</code> instances as
 
 <p><strong>Make a separate interface with unsafe methods, and implement all unsafe classes using <code class="highlighter-rouge">FractionUnsafe</code>?</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface FractionUnsafe {
-    int numerator() throws Exception;
-    int denominator() throws Exception;
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">FractionUnsafe</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">;</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">;</span>
+<span class="o">}</span>
 
-class FracFromFile implements FractionUnsafe {
-    private final File file;
+<span class="kd">class</span> <span class="nc">FracFromFile</span> <span class="kd">implements</span> <span class="n">FractionUnsafe</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">;</span>
 
-    public FracFromFile(File file) {
-        this.file = file;
-    }
+    <span class="kd">public</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() throws Exception {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[0]
-            );
-        }
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
 
-    public final int denominator() throws Exception {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[1]
-            );
-        }
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>But what about <code class="highlighter-rouge">FracSum</code> from the initial example? It is sum of <code class="highlighter-rouge">Fraction</code>’s, not <code class="highlighter-rouge">FractionUnsafe</code>’s. In other words, 
@@ -229,33 +229,33 @@ applicable for classes implemented from <code class="highlighter-rouge">Fraction
 
 <p><strong>Be a sinner, by suppressing exceptions, or wrapping them to runtime exceptions?</strong></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracFromFile implements Fraction {
-    private final File file;
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracFromFile</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">;</span>
 
-    public FracFromFile(File file) {
-        this.file = file;
-    }
+    <span class="kd">public</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">file</span> <span class="o">=</span> <span class="n">file</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[0]
-            );
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            return Integer.parseInt(
-                reader.readLine().split("/")[1]
-            );
-        } catch(Exception ex) {
-            throw new RuntimeException(ex);
-        }
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span><span class="o">(</span><span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span> <span class="n">FileReader</span><span class="o">(</span><span class="n">file</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span>
+                <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">().</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]</span>
+            <span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>Suppressing exceptions is just wrong: never use exceptions for control flow (at least until you can). Wrapping 
@@ -274,21 +274,21 @@ supposed to handle them? Flow control through exceptions is evil, nobody cancell
 control exceptional situations, what is the reason to notify clients of some class of their presence?</p>
 
 <p>To say more, is there such differentiation as safe or unsafe code? Let’s check this example:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class FracFromString implements Fraction {
-    private final String str;
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracFromString</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">str</span><span class="o">;</span>
 
-    public FracFromString(String str) {
-        this.str = str;
-    }
+    <span class="kd">public</span> <span class="nf">FracFromString</span><span class="o">(</span><span class="n">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">str</span> <span class="o">=</span> <span class="n">str</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        return Integer.parseInt(str.split("/")[0]);
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">str</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]);</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        return Integer.parseInt(str.split("/")[1]);
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">str</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>It’s fraction too. It’s like <code class="highlighter-rouge">FracFromFile</code>, but parses string instead of file. It will compile as-is, but it has plenty
@@ -322,9 +322,5 @@ Consider no code as safe, it is only honest.</p>
     <footer>
         <p>© 2018 - Kapralov Sergey</p>
     </footer>
-    <!--<script>
-        var button = new RhythmToggleButton();
-        button.addTo("body");
-    </script>-->
 </body>
 </html>

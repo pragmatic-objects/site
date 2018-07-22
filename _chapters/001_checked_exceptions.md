@@ -17,19 +17,19 @@ them.
 
 Consider the following interface:
 
-```
+```java
 interface Fraction {
     int numerator();
     int denominator();
 }
-``` 
+```
 
 Cosy little interface, with clear meaning and cohesive set of methods. A [simple fraction](https://en.wikipedia.org/wiki/Fraction_(mathematics)). 
 We can easily make some implementations of it for fractures and operations on them.
  
 A fraction with fixed numerator and denominator:
 
-```
+```java
 class FracStatic implements Fraction {
     private final int numerator;
     private final int denominator;
@@ -51,7 +51,7 @@ class FracStatic implements Fraction {
 
 A fraction got from a sum of two fractions:
 
-```
+```java
 class FracSum implements Fraction {
     private final Fraction left;
     private final Fraction right;
@@ -75,7 +75,7 @@ class FracSum implements Fraction {
 
 A fraction got from multiplication of two fractions:
 
-```
+```java
 class FracMultiply implements Fraction {
     private final Fraction left;
     private final Fraction right;
@@ -97,22 +97,24 @@ class FracMultiply implements Fraction {
 
 And we can use all of them by composing together in elegant way:
 
-```
-public static void main(String... args) {
-    FracSum sum = new FracSum(
-        new FracStatic(1, 2),
-        new FracStatic(1, 3)
-    );
-    System.out.println(
-        sum.numerator() + "/" + sum.denominator()
-    ); /* 5/6 */
+```java
+public class Main {
+    public static void main(String... args) {
+        FracSum sum = new FracSum(
+            new FracStatic(1, 2),
+            new FracStatic(1, 3)
+        );
+        System.out.println(
+            sum.numerator() + "/" + sum.denominator()
+        ); /* 5/6 */
+    }
 }
 ```
 
 However, all these implementations were rather simple. Let's try more complex example. What if we need to implement a 
 fraction, parsed from some file contents, for instance:
 
-```
+```java
 /**
  * Fraction, parsed from file contents. Expects a line in format
  * '[0-9]+/[0-9]+'.
@@ -152,7 +154,7 @@ immediately makes any implementation that uses them unsafe. This fact forces imp
 
 **Add `throws Exception` to the interface method's declaration?**
 
-```
+```java
 interface Fraction {
     int numerator() throws Exception;
     int denominator() throws Exception;
@@ -189,7 +191,7 @@ implementations use `Fraction` instances as method arguments or class fields.
 
 **Make a separate interface with unsafe methods, and implement all unsafe classes using `FractionUnsafe`?**
 
-```
+```java
 interface FractionUnsafe {
     int numerator() throws Exception;
     int denominator() throws Exception;
@@ -226,7 +228,7 @@ applicable for classes implemented from `FractionUnsafe`.
 
 **Be a sinner, by suppressing exceptions, or wrapping them to runtime exceptions?**
 
-```
+```java
 class FracFromFile implements Fraction {
     private final File file;
 
@@ -272,7 +274,7 @@ supposed to handle them? Flow control through exceptions is evil, nobody cancell
 control exceptional situations, what is the reason to notify clients of some class of their presence?
 
 To say more, is there such differentiation as safe or unsafe code? Let's check this example:
-```
+```java
 class FracFromString implements Fraction {
     private final String str;
 
