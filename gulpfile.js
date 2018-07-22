@@ -14,12 +14,17 @@ task('build:styles', () => {
         .pipe(dest(siteDir))
 });
 
+task('build:cname', () => {
+    return src(appDir + '/CNAME')
+        .pipe(dest(siteDir));
+});
+
 task('build:jekyll', function() {
     return src(".")
         .pipe(run('jekyll build --config _config.yml'));
 });
 
-task('build', series('build:jekyll', 'build:styles'/*, 'build:copydeps'*/), done => {
+task('build', series('build:jekyll', 'build:styles', 'build:cname'), done => {
     return done();
 });
 
