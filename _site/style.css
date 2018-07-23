@@ -90,12 +90,12 @@ h6 {
 }
 
 header {
-    margin-bottom: 8rem;
+    margin-bottom: 7rem;
     text-align: center;
 }
 
 header > h1 {
-    margin-bottom: 0;
+    margin-bottom: 1rem;
 }
 
 header > a {
