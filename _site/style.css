@@ -18,17 +18,62 @@ $blockquote-border-color: #e5e5e5;
 */
 
 :root {
-    font-size:       87.5%;
+    --mobile:       320px;
+    --tablet:       768px;
+    --desktop:       1000px;
+    font-size:       56.25%;
     font-family:       serif;
 }
 
+@media  (min-width: 20em) {
+
+    :root {
+        font-size:       calc(56.25% + 3 * ((100vw - 20em) / 448));
+    }
+}
+
+@media  (min-width: 48em) {
+
+    :root {
+        font-size:       calc(75% + 2 * ((100vw - 48em) / 232));
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    :root {
+        font-size:       87.5%;
+    }
+}
+
 body {
-    font-size:       1.2857142857142858rem;
+    font-size:       1.3333333333333333rem;
     line-height:       2rem;
     font-style: normal;
     font-weight: normal;
     background-color: #fff;
     color: #515151;
+}
+
+@media  (min-width: 20em) {
+
+    body {
+        font-size:       1.2727272727272727rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    body {
+        font-size:       1.3333333333333333rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    body {
+        font-size:       1.2857142857142858rem;
+    }
 }
 
 a {
@@ -52,41 +97,167 @@ h6 {
 }
 
 h1 {
-    font-size:       3.857142857142857rem;
+    font-size:       2.6666666666666665rem;
     line-height: 4rem;
     margin-top: 8rem;
     margin-bottom: 1rem;
 }
 
+@media  (min-width: 20em) {
+
+    h1 {
+        font-size:       3.8181818181818183rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h1 {
+        font-size:       4rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h1 {
+        font-size:       3.857142857142857rem;
+    }
+}
+
 h2 {
-    font-size:       2.642857142857143rem;
+    font-size:       2.111111111111111rem;
     margin-top: 5rem;
     margin-bottom: 1rem;
 }
 
+@media  (min-width: 20em) {
+
+    h2 {
+        font-size:       2.6363636363636362rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h2 {
+        font-size:       2.75rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h2 {
+        font-size:       2.642857142857143rem;
+    }
+}
+
 h3 {
-    font-size:       1.8571428571428572rem;
+    font-size:       1.6666666666666667rem;
     margin-top: 4rem;
     margin-bottom: 1rem;
 }
 
+@media  (min-width: 20em) {
+
+    h3 {
+        font-size:       1.8181818181818181rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h3 {
+        font-size:       1.9166666666666667rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h3 {
+        font-size:       1.8571428571428572rem;
+    }
+}
+
 h4 {
-    font-size:       1.5714285714285714rem;
+    font-size:       1.5555555555555556rem;
     margin-top: 3rem;
     margin-bottom: 1rem;
 }
 
+@media  (min-width: 20em) {
+
+    h4 {
+        font-size:       1.5454545454545454rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h4 {
+        font-size:       1.5833333333333333rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h4 {
+        font-size:       1.5714285714285714rem;
+    }
+}
+
 h5 {
-    font-size:       1.2857142857142858rem;
+    font-size:       1.3333333333333333rem;
     margin-top: 5rem;
     margin-bottom: 1rem;
 }
 
+@media  (min-width: 20em) {
+
+    h5 {
+        font-size:       1.2727272727272727rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h5 {
+        font-size:       1.3333333333333333rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h5 {
+        font-size:       1.2857142857142858rem;
+    }
+}
+
 h6 {
-    font-size:       1.2857142857142858rem;
+    font-size:       1.3333333333333333rem;
     font-style: italic;
     margin-top: 5rem;
     margin-bottom: 1rem;
+}
+
+@media  (min-width: 20em) {
+
+    h6 {
+        font-size:       1.2727272727272727rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    h6 {
+        font-size:       1.3333333333333333rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    h6 {
+        font-size:       1.2857142857142858rem;
+    }
 }
 
 header {
@@ -99,7 +270,28 @@ header > h1 {
 }
 
 header > a {
-    font-size:       1.0714285714285714rem;
+    font-size:       1.2222222222222223rem;
+}
+
+@media  (min-width: 20em) {
+
+    header > a {
+        font-size:       1.0909090909090908rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    header > a {
+        font-size:       1.0833333333333333rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    header > a {
+        font-size:       1.0714285714285714rem;
+    }
 }
 
 #contents {
@@ -115,18 +307,6 @@ header > a {
     list-style:none;
 }
 
-article {
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    clear: both;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    width: 800px;
-}
-
 article > p {
     -ms-hyphens: auto;
     -webkit-hyphens: auto;
@@ -136,28 +316,88 @@ article > p {
 
 footer {
     margin-top: 5rem;
-    font-size:       0.9285714285714286rem;
+    font-size:       1rem;
     text-align: center;
+}
+
+@media  (min-width: 20em) {
+
+    footer {
+        font-size:       0.9090909090909091rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    footer {
+        font-size:       0.9166666666666666rem;
+    }
+}
+
+@media  (min-width: 62.5em) {
+
+    footer {
+        font-size:       0.9285714285714286rem;
+    }
 }
 
 
 .highlight {
-    font-size:       1.0714285714285714rem;
+    font-size:       1.2222222222222223rem;
     margin-top: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
+    overflow-x: auto;
 }
 
-#disqus_thread {
-    margin-top: 10rem;
-    margin-bottom: 2rem;
-    -webkit-box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    clear: both;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    width: 800px;
+
+@media  (min-width: 20em) {
+
+    .highlight {
+        font-size:       1.0909090909090908rem;
+    }
+}
+
+
+@media  (min-width: 48em) {
+
+    .highlight {
+        font-size:       1.0833333333333333rem;
+    }
+}
+
+
+@media  (min-width: 62.5em) {
+
+    .highlight {
+        font-size:       1.0714285714285714rem;
+    }
+}
+
+@media  (min-width: 60rem) {
+    article {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        clear: both;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        width: 60rem;
+    }
+
+    #disqus_thread {
+        margin-top: 10rem;
+        margin-bottom: 2rem;
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+        clear: both;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        width: 60rem;
+    }
 }
