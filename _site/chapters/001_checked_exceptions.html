@@ -267,9 +267,9 @@ applicable for classes implemented from <code class="highlighter-rouge">Fraction
 exceptions (like in example above) is a direct contradiction to Yegor’s own principles. But it feels less harmful and
 more sane than the previous two ways.</p>
 
-<h3 id="why-so">Why so?</h3>
+<h2 id="why-so">Why so?</h2>
 
-<p>Checked interfaces has one problem, and this problem neglects all the benefits Yegor outlined in 
+<p>Checked exceptions has one problem, and this problem neglects all the benefits Yegor outlined in 
 his blogpost. The problem is—when in some interface we define a fact that some method is safe or unsafe, we make an
 implicit assumption on the future implementations’ internals. Usually such details are supposed to be encapsulated. 
 This leads to inflexible interfaces, which are hard to extend. And it additionally couples the objects to each other.</p>

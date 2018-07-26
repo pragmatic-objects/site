@@ -262,9 +262,9 @@ Suppressing exceptions is just wrong: never use exceptions for control flow (at 
 exceptions (like in example above) is a direct contradiction to Yegor's own principles. But it feels less harmful and
 more sane than the previous two ways.
 
-### Why so?
+## Why so?
 
-Checked interfaces has one problem, and this problem neglects all the benefits Yegor outlined in 
+Checked exceptions has one problem, and this problem neglects all the benefits Yegor outlined in 
 his blogpost. The problem is---when in some interface we define a fact that some method is safe or unsafe, we make an
 implicit assumption on the future implementations' internals. Usually such details are supposed to be encapsulated. 
 This leads to inflexible interfaces, which are hard to extend. And it additionally couples the objects to each other. 
