@@ -1,10 +1,14 @@
 title: Pragmatic Objects
-subtitle: Pragmatic adaptation of "Elegant Objects" by Kapralov Sergey
+description: Pragmatic adaptation of "Elegant Objects" by Kapralov Sergey
 scm: https://github.com/pragmatic-objects/site
+url: https://pragmaticobjects.com
+
+author:
+  name: Kapralov Sergey
 
 collections:
   chapters:
-      output: true
+    output: true
 
 markdown: kramdown
 

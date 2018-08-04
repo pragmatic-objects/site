@@ -1,0 +1,25 @@
+---
+title : Atom Feed
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>{{ site.title }}</title>
+  <subtitle>{{ site.description }}</subtitle>
+  <link href="{{ site.url }}"/>
+  <updated>{{ site.time | date: "%Y-%m-%dT%H:%M:%SZ" }}</updated>
+  <id>{{ site.url }}/</id>
+  <author>
+    <name>{{ site.author.name }}</name>
+  </author>
+  <rights type="text">Copyright © {{ site.time | date: "%Y" }} {{ site.author.name }}.</rights>
+  {% for chapter in site.chapters %}
+  <entry>
+    <title>{{ chapter.title | xml_escape }}</title>
+    <id>{{ site.url }}{{ chapter.id }}</id>
+    <link rel="alternate" type="text/html"
+          href="{{ site.url }}{{ chapter.id }}.html" />
+    <!--<published>{{ chapter.date }}</published>-->
+    <updated>{{ chapter.date | date_to_xmlschema }}</updated>
+  </entry>
+  {% endfor %}
+</feed>

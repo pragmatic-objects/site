@@ -1,10 +1,11 @@
 ---
 layout: post
 title: Forget about checked exceptions
+date: 2018-07-27T18:00:00+03:00
 ---
 
 Checked exceptions vs. unchecked exceptions. I know this kind of discussion is a bit old and raised 
-many times. Someone say checked exceptions are evil. Someone say they are reasonable sometimes. Then suddenly 
+many times. Someone says checked exceptions are evil. Someone says they are reasonable sometimes. Then suddenly 
 Yegor Bugayenko came with his Elegant Objects and [claimed](https://www.yegor256.com/2015/07/28/checked-vs-unchecked-exceptions.html) 
 that it's actually unchecked exceptions that are evil, and checked exceptions must be used instead.
 

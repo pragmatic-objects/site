@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Introduction
+date: 2018-07-27T17:00:00+03:00
 ---
 
 In 2014, Yegor Bugayenko started his own blog, dedicated mainly to 
