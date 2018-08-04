@@ -3,7 +3,7 @@
   <title>Pragmatic Objects</title>
   <subtitle>Pragmatic adaptation of "Elegant Objects" by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2018-08-04T10:55:29Z</updated>
+  <updated>2018-08-04T11:13:05Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -15,7 +15,6 @@
     <id>https://pragmaticobjects.com/chapters/000_intro</id>
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/000_intro.html" />
-    <!--<published>2018-07-27 17:00:00 +0300</published>-->
     <updated>2018-07-27T17:00:00+03:00</updated>
   </entry>
   
@@ -24,7 +23,6 @@
     <id>https://pragmaticobjects.com/chapters/001_checked_exceptions</id>
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/001_checked_exceptions.html" />
-    <!--<published>2018-07-27 18:00:00 +0300</published>-->
     <updated>2018-07-27T18:00:00+03:00</updated>
   </entry>
   

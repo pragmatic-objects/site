@@ -18,7 +18,6 @@ title : Atom Feed
     <id>{{ site.url }}{{ chapter.id }}</id>
     <link rel="alternate" type="text/html"
           href="{{ site.url }}{{ chapter.id }}.html" />
-    <!--<published>{{ chapter.date }}</published>-->
     <updated>{{ chapter.date | date_to_xmlschema }}</updated>
   </entry>
   {% endfor %}
