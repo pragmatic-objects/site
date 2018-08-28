@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Never make classes final</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+</head>
+<body>
+    <header>
+    <h1>Never make classes final</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Never make classes final'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>The class of any Elegant object must be either 
+<a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html#7-his-class-is-either-final-or-abstract">abstract or final</a>.
+The intention behind this rule, I believe, was eliminating implementation inheritance as a kind. Drawbacks of 
+inheritance and behefits of subtyping are rather <a href="https://www.yegor256.com/2016/09/13/inheritance-is-procedural.html">clear</a>, 
+so I won’t make an accent on them. However, in my practice I quickly realized that something is wrong with this rule.</p>
+
+<p>Check the class
+<a href="https://github.com/yegor256/cactoos/blob/0.13.3/src/main/java/org/cactoos/io/TeeInput.java"><code class="highlighter-rouge">TeeInput</code></a> from
+<a href="https://github.com/yegor256/cactoos">Cactoos</a> framework. I’ll just quote a shortened version of it, but to get full 
+impression, I recommend following the link.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * Input to Output copying pipe.
+ *
+ * &lt;p&gt;There is no thread-safety guarantee.
+ *
+ * @author Yegor Bugayenko (yegor256@gmail.com)
+ * @version $Id$
+ * @since 0.1
+ */</span>
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">TeeInput</span> <span class="kd">implements</span> <span class="n">Input</span> <span class="o">{</span>
+
+    <span class="cm">/**
+     * The source.
+     */</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Input</span> <span class="n">source</span><span class="o">;</span>
+
+    <span class="cm">/**
+     * The destination.
+     */</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">target</span><span class="o">;</span>
+
+    <span class="c1">///</span>
+    <span class="c1">///</span>
+    <span class="c1">///</span>
+    <span class="c1">/// 72!!! constructors calling each other!</span>
+    <span class="c1">///</span>
+    <span class="c1">///</span>
+    <span class="c1">///</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">InputStream</span> <span class="nf">stream</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">TeeInputStream</span><span class="o">(</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">source</span><span class="o">.</span><span class="na">stream</span><span class="o">(),</span> <span class="k">this</span><span class="o">.</span><span class="na">target</span><span class="o">.</span><span class="na">stream</span><span class="o">()</span>
+        <span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Bloody hell—someone will get a heart attack by such a large class which does just a single thing. Seventy two 
+constructors! About thousand lines of code, and 90% of them are constructors, which
+<a href="https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html">do nothing</a>! What kind of
+maintainability is it?!</p>
+
+<h2 id="emotions-aside">Emotions aside</h2>
+
+<p>Lets look at these constructors closer. Main constructor, which sets the class members, is this one:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public TeeInput(final Input input, final Output output) {
+    this.source = input;
+    this.target = output;
+}
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">Input</code> and <code class="highlighter-rouge">Output</code> are the interfaces from Cactoos—first produces <code class="highlighter-rouge">InputStream</code>, second—<code class="highlighter-rouge">OutputStream</code>. 
+<code class="highlighter-rouge">TeeInput</code>’s behavior with these streams is similar to the <code class="highlighter-rouge">tee</code> Unix command: pipes through the input, 
+writing it to the provided output.</p>
+
+<p>If we now check the secondary constructors, we’ll notice that all of them are the shortcuts for typical usage of the 
+class with files, URLs, input/output streams etc. They are here so that client code can use <code class="highlighter-rouge">TeeInput</code> without making 
+object composition too deep and too verbose.</p>
+
+<p>It all works smoothly, but leads to two issues:</p>
+
+<h3 id="the-number-of-constructors-can-grow-quickly">The number of constructors can grow quickly</h3>
+
+<p>For <code class="highlighter-rouge">TeeInput</code> class, having one <code class="highlighter-rouge">Input</code> attribute and one <code class="highlighter-rouge">Output</code> attribute, the possible exhaustive count of 
+secondary constructors would be:</p>
+
+<p><img src="http://latex.codecogs.com/gif.latex?N_{Input}\times N_{Output}" border="0" /></p>
+
+<p>Where N is the number of the class implementations. The number is growing with:</p>
+<ul>
+  <li>any new class attribute: this will add a new N to the equation above. Such thing as “new attribute” is less likely to 
+happen with highly-cohesive and single-responcible class like <code class="highlighter-rouge">TeeInput</code> but still it is possible.</li>
+  <li>any new subtype of the existing attribute’s type—this on the other hand is typical situation for a 
+highly-segregated interfaces like <code class="highlighter-rouge">Input</code> and <code class="highlighter-rouge">Output</code>.</li>
+</ul>
+
+<p>Both this factors cause exhaustive number of constructors growing very quick, so 72 is not a limit. 
+One may contradict that there is no need to define the exhaustive set of constructors, and it is true.
+But when one need a constructor which is not defined, they will face another issue.</p>
+
+<h3 id="the-class-is-unextendable">The class is unextendable</h3>
+
+<p>Okay, we have <code class="highlighter-rouge">TeeInput</code> with dozens constructors. Now imagine that some developer took Cactoos framework and defined
+a new subtype of <code class="highlighter-rouge">Input</code> over his own framework. Lets name it <code class="highlighter-rouge">InputFromUniverse</code>. What it actually does inside—doesn’t matter.</p>
+
+<p>The developer started composing it with different classes from Cactoos and noticed that some part of 
+composition with <code class="highlighter-rouge">TeeInput</code> taking <code class="highlighter-rouge">InputFromUniverse</code> repeats very often and its source code is too big. In that case he would have a 
+great temptation to eliminate the duplication—all he needs is a new secondary constructor for <code class="highlighter-rouge">TeeInput</code>, taking 
+<code class="highlighter-rouge">InputFromUniverse</code> attributes and <code class="highlighter-rouge">Output</code>…</p>
+
+<p>But the class is final. It is sealed and unextendable.</p>
+
+<h2 id="so-whatinheritance-is-evil-anyway">So what—inheritance is evil anyway?</h2>
+
+<p>Yes, but at the same time subtyping is virtue.
+The question is—does <code class="highlighter-rouge">extends</code> keyword from Java always means a source of troubles?</p>
+
+<p>Lets imagine that the <code class="highlighter-rouge">TeeInput</code> class is not final and doesn’t have any secondary constructors:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInput</span> <span class="kd">implements</span> <span class="n">Input</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Input</span> <span class="n">source</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">target</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">TeeInput</span><span class="o">(</span><span class="kd">final</span> <span class="n">Input</span> <span class="n">input</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">output</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">source</span> <span class="o">=</span> <span class="n">input</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">target</span> <span class="o">=</span> <span class="n">output</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">InputStream</span> <span class="nf">stream</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">TeeInputStream</span><span class="o">(</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">source</span><span class="o">.</span><span class="na">stream</span><span class="o">(),</span> <span class="k">this</span><span class="o">.</span><span class="na">target</span><span class="o">.</span><span class="na">stream</span><span class="o">()</span>
+        <span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>It’s not that convenient for the client anymore, but it is short and self-sufficient. So—one want a shortcut around
+some piece of composition? They are free to do that by extending it:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromUriToFile</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromWebToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">URI</span> <span class="n">uri</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromUri</span><span class="o">(</span><span class="n">uri</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">file</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromFileToFile</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromFileToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">File</span> <span class="n">input</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromFile</span><span class="o">(</span><span class="n">input</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">file</span><span class="o">));</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromUniverse</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromFileToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">UniverseCoordinates</span> <span class="n">universeCoordinates</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">output</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromUniverse</span><span class="o">(</span><span class="n">universeCoordinates</span><span class="o">),</span> <span class="n">output</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Is it implementation inheritance? Maybe. But the more important question is: can we call these inheritors 
+<em>subtypes</em> of <code class="highlighter-rouge">TeeInput</code>?</p>
+
+<p>Look closer. All these inheritors have an interesting capability. <em>For any composition which operates 
+with such inheritor, replacement of it with the contents of its constructor would never change the composition’s 
+behavior</em>. For example, these two objects are equivalent:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>new TeeInputFromUrlToFile(
+    "http://example.com/somefile",
+    new File("/tmp/tempFile")
+)
+</code></pre></div></div>
+<p>…vs…</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>new TeeInput(
+    new InputFromUri(
+        "http://example.com/somefile"
+    ),
+    new OutputFromFile(
+        new File("/tmp/tempFile")
+    )
+)
+</code></pre></div></div>
+
+<p>They both are <em>guaranteed</em> to behave in the same way for any program which use them. Doesn’t it sound 
+<a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">familiar</a>?</p>
+
+<p>This equivalence might be easily broken though if one overrode the <code class="highlighter-rouge">stream</code> method in <code class="highlighter-rouge">TeeInput</code> inheritor. To 
+prevent that, make all methods final instead. This will force the inheritors to inherit a class as a whole, not only 
+parts of them.</p>
+
+<p>The concept of reusing the class in such manner may look similar to 
+<a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">decorating envelopes</a> approach. Nice approach, but 
+what I can’t get is why should we prohibit applying it on honest “Elegant” class by making it <code class="highlighter-rouge">final</code>?</p>
+
+<p>Never make “Elegant” classes <code class="highlighter-rouge">final</code>—it is harmful and gives no benefits. Instead—make all its methods <code class="highlighter-rouge">final</code>.</p>
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2018 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
