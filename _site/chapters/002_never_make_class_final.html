@@ -68,8 +68,7 @@ impression, I recommend following the link.</p>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>Bloody hell—someone will get a heart attack by such a large class which does just a single thing. Seventy two 
-constructors! About thousand lines of code, and 90% of them are constructors, which
+<p>Bloody hell—seventy two constructors! About thousand lines of code, and 90% of them are constructors, which
 <a href="https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html">do nothing</a>! What kind of
 maintainability is it?!</p>
 
@@ -198,12 +197,12 @@ behavior</em>. For example, these two objects are equivalent:</p>
 <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">familiar</a>?</p>
 
 <p>This equivalence might be easily broken though if one overrode the <code class="highlighter-rouge">stream</code> method in <code class="highlighter-rouge">TeeInput</code> inheritor. To 
-prevent that, make all methods final instead. This will force the inheritors to inherit a class as a whole, not only 
-parts of them.</p>
+prevent that, the method is intentionally made final. This will force the inheritors to inherit a class as a whole, 
+not only parts of them.</p>
 
 <p>The concept of reusing the class in such manner may look similar to 
-<a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">decorating envelopes</a> approach. Nice approach, but 
-what I can’t get is why should we prohibit applying it on honest “Elegant” class by making it <code class="highlighter-rouge">final</code>?</p>
+<a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">decorating envelopes</a> approach. It’s really nice 
+approach, but what I can’t get is why should we prohibit applying it on honest “Elegant” class by making it <code class="highlighter-rouge">final</code>?</p>
 
 <p>Never make “Elegant” classes <code class="highlighter-rouge">final</code>—it is harmful and gives no benefits. Instead—make all its methods <code class="highlighter-rouge">final</code>.</p>
 

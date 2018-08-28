@@ -115,6 +115,7 @@ header > a {
 }
 
 article > p {
+    margin-top: 2rem;
     -ms-hyphens: auto;
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
@@ -130,7 +131,7 @@ footer {
 
 .highlight {
     font-size: t-step(-1);
-    margin-top: 1rem;
+    margin-top: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-x: auto;

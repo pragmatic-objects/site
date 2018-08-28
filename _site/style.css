@@ -18,9 +18,9 @@ $blockquote-border-color: #e5e5e5;
 */
 
 :root {
-    --mobile:       320px;
-    --tablet:       768px;
-    --desktop:       1000px;
+    --mobile:       320;
+    --tablet:       768;
+    --desktop:       1024;
     font-size:       56.25%;
     font-family:       serif;
 }
@@ -35,11 +35,11 @@ $blockquote-border-color: #e5e5e5;
 @media  (min-width: 48em) {
 
     :root {
-        font-size:       calc(75% + 2 * ((100vw - 48em) / 232));
+        font-size:       calc(75% + 2 * ((100vw - 48em) / 256));
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     :root {
         font-size:       87.5%;
@@ -69,7 +69,7 @@ body {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     body {
         font-size:       1.2857142857142858rem;
@@ -117,7 +117,7 @@ h1 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h1 {
         font-size:       3.857142857142857rem;
@@ -144,7 +144,7 @@ h2 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h2 {
         font-size:       2.642857142857143rem;
@@ -171,7 +171,7 @@ h3 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h3 {
         font-size:       1.8571428571428572rem;
@@ -198,7 +198,7 @@ h4 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h4 {
         font-size:       1.5714285714285714rem;
@@ -225,7 +225,7 @@ h5 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h5 {
         font-size:       1.2857142857142858rem;
@@ -253,7 +253,7 @@ h6 {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     h6 {
         font-size:       1.2857142857142858rem;
@@ -287,7 +287,7 @@ header > a {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     header > a {
         font-size:       1.0714285714285714rem;
@@ -308,6 +308,7 @@ header > a {
 }
 
 article > p {
+    margin-top: 2rem;
     -ms-hyphens: auto;
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
@@ -334,7 +335,7 @@ footer {
     }
 }
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     footer {
         font-size:       0.9285714285714286rem;
@@ -344,7 +345,7 @@ footer {
 
 .highlight {
     font-size:       1.2222222222222223rem;
-    margin-top: 1rem;
+    margin-top: 2rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-x: auto;
@@ -367,7 +368,7 @@ footer {
 }
 
 
-@media  (min-width: 62.5em) {
+@media  (min-width: 64em) {
 
     .highlight {
         font-size:       1.0714285714285714rem;

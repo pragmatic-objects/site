@@ -54,8 +54,7 @@ public final class TeeInput implements Input {
 }
 ```
 
-Bloody hell---someone will get a heart attack by such a large class which does just a single thing. Seventy two 
-constructors! About thousand lines of code, and 90% of them are constructors, which
+Bloody hell---seventy two constructors! About thousand lines of code, and 90% of them are constructors, which
 [do nothing](https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html)! What kind of
 maintainability is it?!
 
@@ -187,11 +186,11 @@ They both are *guaranteed* to behave in the same way for any program which use t
 [familiar](https://en.wikipedia.org/wiki/Liskov_substitution_principle)?
 
 This equivalence might be easily broken though if one overrode the `stream` method in `TeeInput` inheritor. To 
-prevent that, make all methods final instead. This will force the inheritors to inherit a class as a whole, not only 
-parts of them.
+prevent that, the method is intentionally made final. This will force the inheritors to inherit a class as a whole, 
+not only parts of them.
 
 The concept of reusing the class in such manner may look similar to 
-[decorating envelopes](https://www.yegor256.com/2017/01/31/decorating-envelopes.html) approach. Nice approach, but 
-what I can't get is why should we prohibit applying it on honest "Elegant" class by making it `final`?
+[decorating envelopes](https://www.yegor256.com/2017/01/31/decorating-envelopes.html) approach. It's really nice 
+approach, but what I can't get is why should we prohibit applying it on honest "Elegant" class by making it `final`?
 
 Never make "Elegant" classes `final`---it is harmful and gives no benefits. Instead---make all its methods `final`.
