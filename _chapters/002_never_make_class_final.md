@@ -84,7 +84,7 @@ It all works smoothly, but leads to two issues:
 For `TeeInput` class, having one `Input` attribute and one `Output` attribute, the possible exhaustive count of 
 secondary constructors would be:
 
-<img src="http://latex.codecogs.com/gif.latex?N_{Input}\times N_{Output}" border="0"/>
+<img src="https://latex.codecogs.com/gif.latex?N_{Input}\times N_{Output}" border="0"/>
 
 Where N is the number of the class implementations. The number is growing with:
 - any new class attribute: this will add a new N to the equation above. Such thing as "new attribute" is less likely to 
