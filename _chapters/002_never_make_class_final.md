@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Never make classes final
-date: 2018-08-27T17:00:00+03:00
+date: 2018-08-29T13:00:00+03:00
 ---
 
 The class of any Elegant object must be either 
@@ -62,7 +62,7 @@ maintainability is it?!
 
 Lets look at these constructors closer. Main constructor, which sets the class members, is this one:
 
-```
+```java
 public TeeInput(final Input input, final Output output) {
     this.source = input;
     this.target = output;
@@ -92,8 +92,9 @@ happen with highly-cohesive and single-responcible class like `TeeInput` but sti
 - any new subtype of the existing attribute's type---this on the other hand is typical situation for a 
 highly-segregated interfaces like `Input` and `Output`.
 
-Both this factors cause exhaustive number of constructors growing very quick, so 72 is not a limit. 
-One may contradict that there is no need to define the exhaustive set of constructors, and it is true.
+Both these factors cause exhaustive number of constructors growing very quick, so 72 is not even a limit. 
+
+Somebody may contradict that there is no need to define the exhaustive set of constructors, and it is true.
 But when one need a constructor which is not defined, they will face another issue.
 
 ### The class is unextendable
@@ -101,12 +102,43 @@ But when one need a constructor which is not defined, they will face another iss
 Okay, we have `TeeInput` with dozens constructors. Now imagine that some developer took Cactoos framework and defined
 a new subtype of `Input` over his own framework. Lets name it `InputFromUniverse`. What it actually does inside---doesn't matter. 
 
+```java
+class InputFromUniverse {
+    private final UniverseCoordinates coords;
+    
+    public InputFromUniverse(UniverseCoordinates coords) {
+        this.coords = coords;
+    }
+    
+    @Override
+    public InputStream stream() throws IOException {
+        // some implementation
+    }
+}
+```
+
 The developer started composing it with different classes from Cactoos and noticed that some part of 
-composition with `TeeInput` taking `InputFromUniverse` repeats very often and its source code is too big. In that case he would have a 
-great temptation to eliminate the duplication---all he needs is a new secondary constructor for `TeeInput`, taking 
-`InputFromUniverse` attributes and `Output`...
+composition with `TeeInput` taking `InputFromUniverse` repeats very often:
  
-But the class is final. It is sealed and unextendable.
+```java
+...
+new TeeInput(
+    new InputFromUniverse(
+        new UniverseCoordinates(...)
+    ),
+    new OutputToFile(
+        file
+    )
+)
+...
+```
+ 
+In that case he would have a great temptation to eliminate the duplication---all he needs is a new secondary 
+constructor for `TeeInput`, taking `UniverseCoordinates` and `File` arguments...
+ 
+But the class is final. It is sealed, and one cannot extend it without modifying its source code. And the source code 
+of `TeeInput` is in Cactoos, so the only option left for the poor developer is to repeat this composition over and 
+over across his code. Not good for maintainability.
 
 ## So what---inheritance is evil anyway?
 
@@ -139,20 +171,20 @@ some piece of composition? They are free to do that by extending it:
 
 ```java
 public class TeeInputFromUriToFile extends TeeInput {
-    public TeeInputFromWebToFile(final URI uri, final File file) {
+    public TeeInputFromUriToFile(final URI uri, final File file) {
         super(new InputFromUri(uri), new OutputToFile(file));
     }
 }
 
 public class TeeInputFromFileToFile extends TeeInput {
-    public TeeInputFromFileToFile(final File input, final File file) {
-        super(new InputFromFile(input), new OutputToFile(file));
+    public TeeInputFromFileToFile(final File input, final File output) {
+        super(new InputFromFile(input), new OutputToFile(output));
     }
 }
 
-public class TeeInputFromUniverse extends TeeInput {
-    public TeeInputFromFileToFile(final UniverseCoordinates universeCoordinates, final Output output) {
-        super(new InputFromUniverse(universeCoordinates), output);
+public class TeeInputFromUniverseToFile extends TeeInput {
+    public TeeInputFromUniverseToFile(final UniverseCoordinates universeCoordinates, final File file) {
+        super(new InputFromUniverse(universeCoordinates), new OutputToFile(file));
     }
 }
 ```
@@ -161,17 +193,16 @@ Is it implementation inheritance? Maybe. But the more important question is: can
 *subtypes* of `TeeInput`?
 
 Look closer. All these inheritors have an interesting capability. *For any composition which operates 
-with such inheritor, replacement of it with the contents of its constructor would never change the composition's 
+with such inheritor, replacement of inheritor with the contents of its constructor would never change the composition's 
 behavior*. For example, these two objects are equivalent:
 
-```
+```java
 new TeeInputFromUrlToFile(
     "http://example.com/somefile",
     new File("/tmp/tempFile")
 )
 ```
-...vs...
-```
+```java
 new TeeInput(
     new InputFromUri(
         "http://example.com/somefile"
@@ -183,14 +214,19 @@ new TeeInput(
 ```
 
 They both are *guaranteed* to behave in the same way for any program which use them. Doesn't it sound 
-[familiar](https://en.wikipedia.org/wiki/Liskov_substitution_principle)?
+[familiar](https://en.wikipedia.org/wiki/Liskov_substitution_principle)? The `TeeInputFromUrlToFile` actually is 
+subtype of `TeeInput`.
 
-This equivalence might be easily broken though if one overrode the `stream` method in `TeeInput` inheritor. To 
+However, this equivalence might be easily broken, if one  overrides the `stream` method in `TeeInput` inheritor. To 
 prevent that, the method is intentionally made final. This will force the inheritors to inherit a class as a whole, 
 not only parts of them.
 
 The concept of reusing the class in such manner may look similar to 
-[decorating envelopes](https://www.yegor256.com/2017/01/31/decorating-envelopes.html) approach. It's really nice 
-approach, but what I can't get is why should we prohibit applying it on honest "Elegant" class by making it `final`?
+[decorating envelopes](https://www.yegor256.com/2017/01/31/decorating-envelopes.html) approach. I totally for the 
+idea---it's really nice and handy approach for safe object-oriented code reuse. But what I can't get is why should we 
+prohibit applying it on any honest "Elegant" class by making it `final`? It makes no sense. Any class can be subtyped
+in such manner, without exclusions. Making them `final` is just putting useless artificial obstacles, making the code
+hard to extend without modifications, violating [OCP](https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle).
 
-Never make "Elegant" classes `final`---it is harmful and gives no benefits. Instead---make all its methods `final`.
+To sum up: never make "Elegant" classes `final`---it is harmful and gives no benefits. Instead---make all its methods 
+`final`.

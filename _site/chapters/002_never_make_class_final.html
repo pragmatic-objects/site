@@ -76,10 +76,10 @@ maintainability is it?!</p>
 
 <p>Lets look at these constructors closer. Main constructor, which sets the class members, is this one:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>public TeeInput(final Input input, final Output output) {
-    this.source = input;
-    this.target = output;
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="nf">TeeInput</span><span class="o">(</span><span class="kd">final</span> <span class="n">Input</span> <span class="n">input</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">output</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">source</span> <span class="o">=</span> <span class="n">input</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">target</span> <span class="o">=</span> <span class="n">output</span><span class="o">;</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p><code class="highlighter-rouge">Input</code> and <code class="highlighter-rouge">Output</code> are the interfaces from Cactoos—first produces <code class="highlighter-rouge">InputStream</code>, second—<code class="highlighter-rouge">OutputStream</code>. 
@@ -107,8 +107,9 @@ happen with highly-cohesive and single-responcible class like <code class="highl
 highly-segregated interfaces like <code class="highlighter-rouge">Input</code> and <code class="highlighter-rouge">Output</code>.</li>
 </ul>
 
-<p>Both this factors cause exhaustive number of constructors growing very quick, so 72 is not a limit. 
-One may contradict that there is no need to define the exhaustive set of constructors, and it is true.
+<p>Both these factors cause exhaustive number of constructors growing very quick, so 72 is not even a limit.</p>
+
+<p>Somebody may contradict that there is no need to define the exhaustive set of constructors, and it is true.
 But when one need a constructor which is not defined, they will face another issue.</p>
 
 <h3 id="the-class-is-unextendable">The class is unextendable</h3>
@@ -116,12 +117,41 @@ But when one need a constructor which is not defined, they will face another iss
 <p>Okay, we have <code class="highlighter-rouge">TeeInput</code> with dozens constructors. Now imagine that some developer took Cactoos framework and defined
 a new subtype of <code class="highlighter-rouge">Input</code> over his own framework. Lets name it <code class="highlighter-rouge">InputFromUniverse</code>. What it actually does inside—doesn’t matter.</p>
 
-<p>The developer started composing it with different classes from Cactoos and noticed that some part of 
-composition with <code class="highlighter-rouge">TeeInput</code> taking <code class="highlighter-rouge">InputFromUniverse</code> repeats very often and its source code is too big. In that case he would have a 
-great temptation to eliminate the duplication—all he needs is a new secondary constructor for <code class="highlighter-rouge">TeeInput</code>, taking 
-<code class="highlighter-rouge">InputFromUniverse</code> attributes and <code class="highlighter-rouge">Output</code>…</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">InputFromUniverse</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">UniverseCoordinates</span> <span class="n">coords</span><span class="o">;</span>
+    
+    <span class="kd">public</span> <span class="nf">InputFromUniverse</span><span class="o">(</span><span class="n">UniverseCoordinates</span> <span class="n">coords</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">coords</span> <span class="o">=</span> <span class="n">coords</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">InputStream</span> <span class="nf">stream</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="o">{</span>
+        <span class="c1">// some implementation</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
 
-<p>But the class is final. It is sealed and unextendable.</p>
+<p>The developer started composing it with different classes from Cactoos and noticed that some part of 
+composition with <code class="highlighter-rouge">TeeInput</code> taking <code class="highlighter-rouge">InputFromUniverse</code> repeats very often:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">...</span>
+<span class="k">new</span> <span class="nf">TeeInput</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">InputFromUniverse</span><span class="o">(</span>
+        <span class="k">new</span> <span class="nf">UniverseCoordinates</span><span class="o">(...)</span>
+    <span class="o">),</span>
+    <span class="k">new</span> <span class="nf">OutputToFile</span><span class="o">(</span>
+        <span class="n">file</span>
+    <span class="o">)</span>
+<span class="o">)</span>
+<span class="o">...</span>
+</code></pre></div></div>
+
+<p>In that case he would have a great temptation to eliminate the duplication—all he needs is a new secondary 
+constructor for <code class="highlighter-rouge">TeeInput</code>, taking <code class="highlighter-rouge">UniverseCoordinates</code> and <code class="highlighter-rouge">File</code> arguments…</p>
+
+<p>But the class is final. It is sealed, and one cannot extend it without modifying its source code. And the source code 
+of <code class="highlighter-rouge">TeeInput</code> is in Cactoos, so the only option left for the poor developer is to repeat this composition over and 
+over across his code. Not good for maintainability.</p>
 
 <h2 id="so-whatinheritance-is-evil-anyway">So what—inheritance is evil anyway?</h2>
 
@@ -152,20 +182,20 @@ The question is—does <code class="highlighter-rouge">extends</code> keyword fr
 some piece of composition? They are free to do that by extending it:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromUriToFile</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="nf">TeeInputFromWebToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">URI</span> <span class="n">uri</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromUriToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">URI</span> <span class="n">uri</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
         <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromUri</span><span class="o">(</span><span class="n">uri</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">file</span><span class="o">));</span>
     <span class="o">}</span>
 <span class="o">}</span>
 
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromFileToFile</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="nf">TeeInputFromFileToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">File</span> <span class="n">input</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
-        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromFile</span><span class="o">(</span><span class="n">input</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">file</span><span class="o">));</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromFileToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">File</span> <span class="n">input</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">output</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromFile</span><span class="o">(</span><span class="n">input</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">output</span><span class="o">));</span>
     <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromUniverse</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
-    <span class="kd">public</span> <span class="nf">TeeInputFromFileToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">UniverseCoordinates</span> <span class="n">universeCoordinates</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Output</span> <span class="n">output</span><span class="o">)</span> <span class="o">{</span>
-        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromUniverse</span><span class="o">(</span><span class="n">universeCoordinates</span><span class="o">),</span> <span class="n">output</span><span class="o">);</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">TeeInputFromUniverseToFile</span> <span class="kd">extends</span> <span class="n">TeeInput</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">TeeInputFromUniverseToFile</span><span class="o">(</span><span class="kd">final</span> <span class="n">UniverseCoordinates</span> <span class="n">universeCoordinates</span><span class="o">,</span> <span class="kd">final</span> <span class="n">File</span> <span class="n">file</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="k">new</span> <span class="n">InputFromUniverse</span><span class="o">(</span><span class="n">universeCoordinates</span><span class="o">),</span> <span class="k">new</span> <span class="n">OutputToFile</span><span class="o">(</span><span class="n">file</span><span class="o">));</span>
     <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div></div>
@@ -174,37 +204,41 @@ some piece of composition? They are free to do that by extending it:</p>
 <em>subtypes</em> of <code class="highlighter-rouge">TeeInput</code>?</p>
 
 <p>Look closer. All these inheritors have an interesting capability. <em>For any composition which operates 
-with such inheritor, replacement of it with the contents of its constructor would never change the composition’s 
+with such inheritor, replacement of inheritor with the contents of its constructor would never change the composition’s 
 behavior</em>. For example, these two objects are equivalent:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>new TeeInputFromUrlToFile(
-    "http://example.com/somefile",
-    new File("/tmp/tempFile")
-)
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">TeeInputFromUrlToFile</span><span class="o">(</span>
+    <span class="s">"http://example.com/somefile"</span><span class="o">,</span>
+    <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">"/tmp/tempFile"</span><span class="o">)</span>
+<span class="o">)</span>
 </code></pre></div></div>
-<p>…vs…</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>new TeeInput(
-    new InputFromUri(
-        "http://example.com/somefile"
-    ),
-    new OutputFromFile(
-        new File("/tmp/tempFile")
-    )
-)
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">TeeInput</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">InputFromUri</span><span class="o">(</span>
+        <span class="s">"http://example.com/somefile"</span>
+    <span class="o">),</span>
+    <span class="k">new</span> <span class="nf">OutputFromFile</span><span class="o">(</span>
+        <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">"/tmp/tempFile"</span><span class="o">)</span>
+    <span class="o">)</span>
+<span class="o">)</span>
 </code></pre></div></div>
 
 <p>They both are <em>guaranteed</em> to behave in the same way for any program which use them. Doesn’t it sound 
-<a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">familiar</a>?</p>
+<a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">familiar</a>? The <code class="highlighter-rouge">TeeInputFromUrlToFile</code> actually is 
+subtype of <code class="highlighter-rouge">TeeInput</code>.</p>
 
-<p>This equivalence might be easily broken though if one overrode the <code class="highlighter-rouge">stream</code> method in <code class="highlighter-rouge">TeeInput</code> inheritor. To 
+<p>However, this equivalence might be easily broken, if one  overrides the <code class="highlighter-rouge">stream</code> method in <code class="highlighter-rouge">TeeInput</code> inheritor. To 
 prevent that, the method is intentionally made final. This will force the inheritors to inherit a class as a whole, 
 not only parts of them.</p>
 
 <p>The concept of reusing the class in such manner may look similar to 
-<a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">decorating envelopes</a> approach. It’s really nice 
-approach, but what I can’t get is why should we prohibit applying it on honest “Elegant” class by making it <code class="highlighter-rouge">final</code>?</p>
+<a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">decorating envelopes</a> approach. I totally for the 
+idea—it’s really nice and handy approach for safe object-oriented code reuse. But what I can’t get is why should we 
+prohibit applying it on any honest “Elegant” class by making it <code class="highlighter-rouge">final</code>? It makes no sense. Any class can be subtyped
+in such manner, without exclusions. Making them <code class="highlighter-rouge">final</code> is just putting useless artificial obstacles, making the code
+hard to extend without modifications, violating <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">OCP</a>.</p>
 
-<p>Never make “Elegant” classes <code class="highlighter-rouge">final</code>—it is harmful and gives no benefits. Instead—make all its methods <code class="highlighter-rouge">final</code>.</p>
+<p>To sum up: never make “Elegant” classes <code class="highlighter-rouge">final</code>—it is harmful and gives no benefits. Instead—make all its methods 
+<code class="highlighter-rouge">final</code>.</p>
 
 </article>
 <div id="disqus_thread"></div>
