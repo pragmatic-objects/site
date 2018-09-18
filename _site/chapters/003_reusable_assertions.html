@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Reusable assertions</title>
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+</head>
+<body>
+    <header>
+    <h1>Reusable assertions</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Reusable assertions'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>When reading “Elegant object” materials about testing, I was always asking myself: why the tests should look so 
+procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
+case. I am not criticizing this style, but lets try to make the tests in elegant way and see what profit it may give 
+to us?</p>
+
+<p>Let’s consider an example:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>A small highly-segregated interface, representing a simple fraction. One can implement it in several ways… 
+oh wait! I am repeating myself. Lets just take some implementations from <a href="001_checked_exceptions.html">here</a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracStatic</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="kt">int</span> <span class="n">numerator</span><span class="o">,</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">numerator</span> <span class="o">=</span> <span class="n">numerator</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">denominator</span> <span class="o">=</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FracSum</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracSum</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">left</span><span class="o">,</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FracFromString</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">str</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracFromString</span><span class="o">(</span><span class="n">String</span> <span class="n">str</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">str</span> <span class="o">=</span> <span class="n">str</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">str</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">0</span><span class="o">]);</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="n">str</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="s">"/"</span><span class="o">)[</span><span class="mi">1</span><span class="o">]);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Theoretically, I could make tests suite for each of the class above like this:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FractionTest</span> <span class="o">{</span>
+    <span class="nd">@Test</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testSumOfTwoFractions</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">sum</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span>
+            <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
+        <span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">5</span><span class="o">,</span> <span class="n">sum</span><span class="o">.</span><span class="na">numerator</span><span class="o">());</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">6</span><span class="o">,</span> <span class="n">sum</span><span class="o">.</span><span class="na">denominator</span><span class="o">());</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Test</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testFractionFromString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">fraction</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">);</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="n">sum</span><span class="o">.</span><span class="na">numerator</span><span class="o">());</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="n">sum</span><span class="o">.</span><span class="na">denominator</span><span class="o">());</span>
+    <span class="o">}</span>
+    
+    <span class="c1">// etc...</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Practically, I am already repeating myself. For each case I am repeating assertions on numerator and denominator. 
+Also, two assertions per test is not good enough:
+one statement test would be <a href="https://www.yegor256.com/2017/05/17/single-statement-unit-tests.html">better</a>.</p>
+
+<p>And these were simple examples: what if I take <code class="highlighter-rouge">FracFromFile</code> or implement an SQL-speaking fraction? I’d need to 
+prepare test environment somewhere: create a file for test or bootstrap test database.</p>
+
+<h2 id="whats-the-alternative">What’s the alternative?</h2>
+
+<p>Lets start with eliminating the repeating part of the test cases above.
+First, let’s introduce an <code class="highlighter-rouge">Assertion</code> interface:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Assertion</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">check</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Then, lets encapsulate repeating assertions to its implementation:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">AssertFractionHasCertainNumenatorAndDenominator</span> <span class="kd">implements</span> <span class="n">Assertion</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">fraction</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">expectedNumerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">expectedDenominator</span><span class="o">;</span>
+    
+    <span class="kd">public</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">fraction</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">fraction</span> <span class="o">=</span> <span class="n">fraction</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">check</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="n">expectedNumerator</span><span class="o">,</span> <span class="n">fraction</span><span class="o">.</span><span class="na">numerator</span><span class="o">());</span>
+        <span class="n">assertEquals</span><span class="o">(</span><span class="n">expectedDenominator</span><span class="o">,</span> <span class="n">fraction</span><span class="o">.</span><span class="na">denominator</span><span class="o">());</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>And at last, rewrite the test suite:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FractionTest</span> <span class="kd">extends</span> <span class="n">TestsSuite</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">FractionTest</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">TestCase</span><span class="o">(</span>
+                <span class="s">"assert that 1/2 + 1/3 = 5/6"</span><span class="o">,</span>
+                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span>
+                    <span class="k">new</span> <span class="nf">FracSum</span><span class="o">(</span>
+                        <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span>
+                        <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
+                    <span class="o">),</span>
+                    <span class="mi">5</span><span class="o">,</span> <span class="mi">6</span>
+                <span class="o">)</span>
+            <span class="o">),</span>
+            <span class="k">new</span> <span class="nf">TestCase</span><span class="o">(</span>
+                <span class="s">"assert that \"1/2\" string is parsed to a 1/2 fraction"</span><span class="o">,</span>
+                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span>
+                    <span class="k">new</span> <span class="nf">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">),</span>
+                    <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span>
+                <span class="o">)</span>
+            <span class="o">)</span>
+        <span class="o">);</span>
+    <span class="o">}</span>
+    
+    <span class="c1">// etc...</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>In the example above, <code class="highlighter-rouge">TestCase</code> is a certain test case with a single assertion inside, and <code class="highlighter-rouge">TestSuite</code> is a class 
+which executes a sequence of test cases.</p>
+
+<h3 id="whats-the-profit">What’s the profit?</h3>
+
+<p>It all may look meaningless: what is the reason to outline just a couple of assertions to a separate class? 
+Isn’t it overcomplicating simple things?</p>
+
+<p>I see the following benefits:</p>
+
+<ul>
+  <li>
+    <p>Once implemented, <code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> assertion can be used on <em>any</em> possible 
+subtype of <code class="highlighter-rouge">Fraction</code>.</p>
+  </li>
+  <li>
+    <p>For any highly-segregated interface with clear domain-related semantics (like <code class="highlighter-rouge">Fraction</code>) the number of 
+needed assertions is usually limited. For fraction, single <code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> would 
+cover the majority of possible test scenarios with fractions. When we test a new <code class="highlighter-rouge">Fraction</code> implementation, first thing
+we would want to test is that fraction under test has certain numerator and denominator.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> assertion, like any other <code class="highlighter-rouge">Assertion</code> implementations, may be 
+released together with the <code class="highlighter-rouge">Fraction</code> interface, so that developers who extend the solution by providing new 
+<code class="highlighter-rouge">Fraction</code> implementations may reuse its assertions for testing their own stuff.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">Assertion</code> implementation may be covered with tests like an ordinary object. Usually, <code class="highlighter-rouge">AssertAssertionPasses</code> and 
+<code class="highlighter-rouge">AssertAssertionFails</code> are enough to cover all possible assertions in the world.</p>
+  </li>
+  <li>
+    <p><code class="highlighter-rouge">Assertion</code>’s may be decorated. This is usually useful for scenarios where certain preconditions must be ensured 
+before executing original assertion.</p>
+  </li>
+  <li>
+    <p>Since assertions may be released together with interfaces and covered with tests, it’s not a problem anymore to put a 
+complex logic inside assertion or assertion decorator. Wanna bootstrap a test database to cover an SQL-speaking 
+object? Why don’t make it inside the assertion decorator?</p>
+  </li>
+  <li>
+    <p>And finally, no matter how complex is assertion, for the <code class="highlighter-rouge">TestCase</code> and developer maintaining it, this assertion 
+always remains a <a href="https://www.yegor256.com/2017/05/17/single-statement-unit-tests.html">single statement</a>.</p>
+  </li>
+</ul>
+
+<h3 id="whats-the-pitfalls">What’s the pitfalls?</h3>
+
+<p>So far it sound too good to be true. But there are pitfalls which must be taken into account when using this method:</p>
+
+<ul>
+  <li>The interfaces of objects under test must be <a href="https://en.wikipedia.org/wiki/Interface_segregation_principle">highly-segregated</a>.</li>
+  <li>The classes under test must be <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">single-responsible</a>.</li>
+  <li>The public contract of the objects under test must be stable.</li>
+</ul>
+
+<p>The reason is the number of invariants of the stuff under test. In case of highly-segregated <code class="highlighter-rouge">Fraction</code> it’s 
+simple—we expect it to have certain values for numerator and denominator and that’s enough for 90% cases. For each 
+such invariant one may write an assertion and use it on each future implementation.</p>
+
+<p>In case of large objects with dozens of methods, like DAO, controllers and services, the number of such invariants is
+scaled with each additional method—there will be too many assertions. Also, since the public contract of such
+objects is inflexible, these assertions wouldn’t be reused effectively. Testing such objects with assertions is 
+waste.</p>
+
+<p>Elegant objects, on the other hand, if designed right, usually suit the requirements enumerated above. So, write 
+objects in Elegant way, and test them with elegant reusable assertions.</p>
+
+<h3 id="oo-tests">OO-Tests</h3>
+
+<p>The project <a href="https://github.com/pragmatic-objects/oo-tests">OO-Tests</a> provides starter capabilities for writing 
+and testing with reusable assertions. <code class="highlighter-rouge">TestsSuite</code>, <code class="highlighter-rouge">TestCase</code> and <code class="highlighter-rouge">Assertion</code> in the example above are all 
+taken from there. Also, it provides a number of common purpose assertions (like <code class="highlighter-rouge">AssertEquals</code>), and 
+<code class="highlighter-rouge">AssertAssertionPassed</code>/<code class="highlighter-rouge">AssertAssertionFailed</code>, mentioned in the post. Based on JUnit 5.</p>
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2018 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
