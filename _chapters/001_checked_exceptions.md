@@ -26,7 +26,7 @@ interface Fraction {
 ```
 
 Cosy little interface, with clear meaning and cohesive set of methods. A [simple fraction](https://en.wikipedia.org/wiki/Fraction_(mathematics)). 
-We can easily make some implementations of it for fractures and operations on them.
+We can easily make some implementations of it for fractions and operations on them.
  
 A fraction with fixed numerator and denominator:
 
