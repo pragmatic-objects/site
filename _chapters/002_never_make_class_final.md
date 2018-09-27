@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Never make classes final
+description: Implementation inheritance is not yet the reason to keep classes final
 date: 2018-08-29T13:00:00+03:00
 ---
 

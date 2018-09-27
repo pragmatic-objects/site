@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Forget about checked exceptions
+description: Checked exceptions, and why they are inapplicable for Elegant Objects
 date: 2018-07-27T18:00:00+03:00
 ---
 

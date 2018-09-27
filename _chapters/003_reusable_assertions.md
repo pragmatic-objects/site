@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Reusable assertions
+description: Elegant way of testing Elegant Objects 
 date: 2018-09-19T00:00:00+03:00
 ---
 

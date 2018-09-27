@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Introduction
+description: Why I started all this
 date: 2018-07-27T17:00:00+03:00
 ---
 
