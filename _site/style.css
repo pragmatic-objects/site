@@ -315,6 +315,22 @@ article > p {
     hyphens: auto;
 }
 
+article > blockquote {
+    font-style: italic;
+}
+
+article li {
+    list-style-type: none;
+    position: relative;    /* It is required for setting position to absolute in the next rule. */
+}
+
+article li::before {
+    content: '\2022';      /* Unicode for • character */
+    position: absolute;
+    left: -2em;          /* Adjust this value so that it appears where you want. */
+    font-size: 1.1em;      /* Adjust this value so that it appears what size you want. */
+}
+
 footer {
     margin-top: 5rem;
     font-size:       1rem;
