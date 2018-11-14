@@ -4,7 +4,7 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2018-11-01T18:19:51Z</updated>
+  <updated>2018-11-14T19:44:24Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -44,10 +44,10 @@
   </entry>
   
   <entry>
-    <title>DI containers are useless and harmful</title>
-    <id>https://pragmaticobjects.com/chapters/004_di_containers</id>
+    <title>Objects equality is myth</title>
+    <id>https://pragmaticobjects.com/chapters/004_object_equivalence</id>
     <link rel="alternate" type="text/html"
-          href="https://pragmaticobjects.com/chapters/004_di_containers.html" />
+          href="https://pragmaticobjects.com/chapters/004_object_equivalence.html" />
     <updated>2018-09-19T00:00:00+03:00</updated>
   </entry>
   

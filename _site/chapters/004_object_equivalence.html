@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Objects equality is myth</title>
+    <meta name="description"
+          content="Do not ever consider two objects equal">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+</head>
+<body>
+    <header>
+    <h1>Objects equality is myth</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Objects equality is myth'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>I always thought that presence of <code class="highlighter-rouge">equals</code> and <code class="highlighter-rouge">hashCode</code> in <code class="highlighter-rouge">Object</code> Java class is deep mistake. Not every object in 
+Java is designed to be a key for some hash map or a subject for comparisons. Yet these two nasty methods were declared
+in the base class, and we must deal with them somehow.</p>
+
+<p>The topic of objects equality was touched by Yegor in this 
+<a href="https://www.yegor256.com/2017/07/11/how-to-redesign-equals.html">post</a>. Yegor provided good arguments why designing 
+<code class="highlighter-rouge">equals</code> is usually painful. Indeed - the contract of method <code class="highlighter-rouge">equals</code> is introduced in such way, that implementing it 
+is impossible without nasty hacks like 
+<a href="https://www.yegor256.com/2015/04/02/class-casting-is-anti-pattern.html">typecasting and <code class="highlighter-rouge">instanceof</code> reasoning</a>.</p>
+
+<p>Yet the solution he proposed sounds not convincing to me. It was a good try - to outline comparison capability to a 
+separate contract, but implementation looks like a hack. Producing two arrays just to compare them sounds 
+unreasonably cumbersome and heavy from performance point of view.</p>
+
+<p>It was not the only attempt to write <code class="highlighter-rouge">equals</code> and keep encapsulation intact. <a href="https://github.com/g4s8">Kirill</a> in his
+blog <a href="https://g4s8.github.io/equals/">post</a> proposes to solve this problem by writing decorators with equality 
+capabilities. Again - good attempt, good problem definition, but not convincing implementation. Because of two reasons:</p>
+
+<ul>
+  <li>
+    <p>Since object is good when it encapsulates internals, capabilities provided by the object’s interface may be 
+just not enough to make any sort of adequate comparison. In other words - how to compare in decorator two objects with 
+single method returning <code class="highlighter-rouge">void</code>?</p>
+  </li>
+  <li>
+    <p>Since <code class="highlighter-rouge">equals</code> and <code class="highlighter-rouge">hashCode</code> methods are widely used inside different sorts of hash-based structures (like 
+<code class="highlighter-rouge">HashMap</code>), using such decorators as hash keys may have undesired drawbacks. Not every interface method is defined with 
+same consistency considerations as <code class="highlighter-rouge">equals</code> method, and writing equality logic based on such methods may easily lead to 
+inconsistent and potentially broken <code class="highlighter-rouge">equals</code>. Using such decorator as key for <code class="highlighter-rouge">HashMap</code> may lead to memory 
+leaks, which are hard to localize.</p>
+  </li>
+</ul>
+
+<p>I think that the problem with objects equality is much deeper then just implementing <code class="highlighter-rouge">equals</code> method in sane manner. In 
+this post, I will describe my philosophy of comparing Elegant Objects. But beforehand, let me start with a question.</p>
+
+<h2 id="what-actually-we-compare">What actually we compare?</h2>
+
+<p>In attempt to compare <em>objects</em>, I see a deep contradiction.</p>
+
+<p>From one side, comparison semantics may vary depending 
+on the business needs. Assuming two <code class="highlighter-rouge">User</code> entities, we can have an intention to compare them by name, passport 
+identity, or even both.</p>
+
+<p>From the other side, objects must strive to seal their internals from outside intervention. It is called encapsulation. 
+Having reference on <code class="highlighter-rouge">User</code> object, there is no guarantee it will provide you any information 
+about itself, because this information may be a subject for encapsulation. You won’t get any information about 
+passport ID from a user declared like that:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Implementations of such user may have some passport ID inside, but not for you and your equality logic.</p>
+
+<p>Besides, even if you decided for yourself that comparing two <code class="highlighter-rouge">User</code>’s by name would be enough for you, think twice, 
+because what you’ll get may contradict to what you expect. Consider these two <code class="highlighter-rouge">User</code> implementations:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">githubLogin</span><span class="o">;</span>
+    
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">githubLogin</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">githubLogin</span> <span class="o">=</span> <span class="n">githubLogin</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// some logic to obtain user's name from Github API</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">TwitterUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">twitterLogin</span><span class="o">;</span>
+    
+    <span class="kd">public</span> <span class="nf">TwitterUser</span><span class="o">(</span><span class="n">String</span> <span class="n">twitterLogin</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">twitterLogin</span> <span class="o">=</span> <span class="n">twitterLogin</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// some logic to obtain user's name from Twitter API</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Now assume that you have two references on <code class="highlighter-rouge">User</code> objects and you are to implement some equality logic for them. 
+Would you consider them equal if they have same name, but one of them is of type <code class="highlighter-rouge">GithubUser</code> and the other is 
+<code class="highlighter-rouge">TwitterUser</code>?</p>
+
+<p>From encapsulation and polymorphism point of view, there is no dilemma - these two objects will be equal by name, and 
+you shouldn’t bother yourself with the fact that they are of different types. If you disagree with that, 
+encapsulation and polymorphism become your enemies - the only option left for you is to refuse from them and reason 
+about equality of two <code class="highlighter-rouge">User</code>’s using <code class="highlighter-rouge">instanceof</code>.</p>
+
+<p>After several probes and mistakes I came to conclusion that intention to write equality logic for <em>objects</em> is 
+wrong intention. It is okay to compare <em>data</em> (like names and passport IDs). It is fine to compare <em>data 
+structures</em>, like <a href="https://www.yegor256.com/2016/07/06/data-transfer-object.html">DTOs</a>. For objects, it is impossible
+to write equality logic in clean manner, because <em>objects are not data</em>.</p>
+
+<p>Once you found yourself in situation when 
+you need to write a logic for comparing two objects, ask yourself: isn’t it the data you are actually trying to 
+compare? What data is it? Isn’t it by chance some internals of the object you are to compare? And if you need to 
+break into object internals, maybe something is wrong with your object’s design?</p>
+
+<p>Having two references on <code class="highlighter-rouge">User</code>’s from example above, you have the right to compare them only by name, since it is the 
+only thing they can tell you about theirselves. Other details schould be out of your concern. If it doesn’t suit your needs, 
+probably you need references to other two objects. <code class="highlighter-rouge">Passport</code>’s, for example.</p>
+
+<p>For the same reason, don’t consider your objects as <code class="highlighter-rouge">HashMap</code> keys. Hash keys, by definition, are a typical piece of 
+data. Objects are not data.</p>
+
+<p>If we treat objects like 
+<a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html#1-he-exists-in-real-life">living creatures</a>, 
+any attempt to tell that two of them are equal is attempt to
+<a href="https://www.yegor256.com/2017/07/04/sexism.html">discriminate</a> them. Each living creature in the world is unique.</p>
+
+<h2 id="objects-equivalence">Objects equivalence</h2>
+
+<p>Despite the fact that objects are not data, and are not the subject for comparisons, there is actually one reliable way
+to compare them. It is based on the following statement from “Elegant Objects” book:</p>
+
+<blockquote>
+  <p>Encapsulated objects, all together, are also known as the “state” or “identity” of the object. For example:</p>
+
+  <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">Cash</span> <span class="o">{</span>
+   <span class="kd">private</span> <span class="n">Integer</span> <span class="n">digits</span><span class="o">;</span>
+   <span class="kd">private</span> <span class="n">Integer</span> <span class="n">cents</span><span class="o">;</span>
+   <span class="kd">private</span> <span class="n">String</span> <span class="n">currency</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div>  </div>
+  <p>Here, we encapsulate three objects. All three of them together identify objects of class <code class="highlighter-rouge">Cash</code>, which means that 
+any two objects encapsulating the same dollars, cents, and currency are equal to each other.</p>
+
+  <p><a href="https://www.amazon.com/Elegant-Objects-1-Yegor-Bugayenko/dp/1519166915/ref=sr_1_1?ie=UTF8&amp;qid=1542212017&amp;sr=8-1&amp;keywords=elegant+objects">“Elegant Objects”</a>, vol 1, chapter 2.1</p>
+</blockquote>
+
+<p>Lets introduce the term “object equivalence”. We will call two objects equivalent, if they are instances of the 
+same class, and for each method called with the same set of attributes they produce exactly the same 
+actions and side effects. In practice, two equivalent objects are not only equal - they are <em>same</em>. You can always 
+replace two of them to one and semantics of your program won’t change.</p>
+
+<p>Simplest example of two equivalent objects is two <a href="001_checked_exceptions.md">fraction</a> objects in example below:</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">)</span>
+<span class="o">);</span> <span class="c1">// == true</span>
+</code></pre></div></div>
+
+<p>More complex example of equivalence we already saw <a href="002_never_make_class_final.md">here</a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">TeeInputFromUrlToFile</span><span class="o">(</span>
+    <span class="s">"http://example.com/somefile"</span><span class="o">,</span>
+    <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">"/tmp/tempFile"</span><span class="o">)</span>
+<span class="o">).</span><span class="na">equals</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">TeeInput</span><span class="o">(</span>
+        <span class="k">new</span> <span class="nf">InputFromUri</span><span class="o">(</span>
+            <span class="s">"http://example.com/somefile"</span>
+        <span class="o">),</span>
+        <span class="k">new</span> <span class="nf">OutputFromFile</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">File</span><span class="o">(</span><span class="s">"/tmp/tempFile"</span><span class="o">)</span>
+        <span class="o">)</span>
+    <span class="o">)</span>
+<span class="o">);</span> <span class="c1">// == true</span>
+</code></pre></div></div>
+
+<p>Formally, we can safely call two objects equivalent if:</p>
+
+<ul>
+  <li>they are instance of the same base class (<code class="highlighter-rouge">FracFromFile</code> in first case, <code class="highlighter-rouge">TeeInput</code> in second)</li>
+  <li>all their fields are equal (this came from the definition of object’s identity and equality from the quote I 
+mentioned above)</li>
+</ul>
+
+<p>Being based on identity (which is supposed to 
+be <a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html#avoiding-identity-mutability">final</a>), 
+equivalence logic is consistent enough to be a good candidate for putting inside <code class="highlighter-rouge">equals</code> method of 
+every <em>object</em>.</p>
+
+<p>Note however that objects equivalence is not replacement for data equality. For example, you won’t find equivalence 
+convenient for comparing two fraction objects:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span>
+<span class="o">);</span> <span class="c1">// == false, because of different fields and base class type</span>
+</code></pre></div></div>
+
+<p>In practice, equivalence logic is convenient only in a limited number of low-level cases, like 
+caching, runtime analisys, and optimizations. Sometimes it can be useful for exact-matching expected and actual results 
+in testing. In other words, equivalence is not for everyday usage.</p>
+
+<p>Yet, since objects are not subject for comparisons, equivalence is a good at least for stubbing this nasty <code class="highlighter-rouge">equals</code> 
+method.</p>
+
+<h2 id="oo-atom-for-generating-equivalence-logic">OO-Atom for generating equivalence logic</h2>
+
+<p>Equivalence logic is rather hard to write from scratch (a subject for a future post). For reasoning about 
+two object’s equivalence in <code class="highlighter-rouge">equals</code>, and for keeping <code class="highlighter-rouge">equals</code> consistent and correct, the class of these objects 
+must meet certain <a href="https://github.com/pragmatic-objects/oo-atom/blob/master/docs/ATOM_SPECIFICATION.md">requirements</a>.</p>
+
+<p>That’s why in my <a href="https://github.com/pragmatic-objects/oo-atom">OO-Atom</a> tool I introduced capability of generating 
+equivalence logic in <code class="highlighter-rouge">equals</code> and <code class="highlighter-rouge">hashCode</code> methods for all elegantly-designed classes in project. For each class, 
+it checks all preconditions, and if they are met, automatically generates correct implementations of <code class="highlighter-rouge">equals</code> and 
+<code class="highlighter-rouge">hashCode</code> for them, taking into account all possible pitfalls.</p>
+
+<p>No need to pollute the code of your objects with typecasts and <code class="highlighter-rouge">instanceof</code>’s anymore. The tool will make all dirty 
+work for you!</p>
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2018 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>

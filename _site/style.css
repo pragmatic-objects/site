@@ -1,22 +1,3 @@
-/*
-// css theme variables / settings
-
-
-//$font-family:       "Helvetica Neue", Helvetica, Arial, sans-serif;
-
-//$body-color:            #515151;
-//$body-background-color: #fff;
-
-$link-color:            #268bd2;
-
-$headings-color:        #313131;    // h1,h2,h3,h4,h5,h6
-
-$strong-color:          #303030;    // strong
-
-$blockquote-color:        #7a7a7a;  // blockquote
-$blockquote-border-color: #e5e5e5;
-*/
-
 :root {
     --mobile:       320;
     --tablet:       768;
@@ -316,19 +297,42 @@ article > p {
 }
 
 article > blockquote {
-    font-style: italic;
+    border-left: 10px solid #ccc;
+    margin: 0;
+    padding-left: 2rem;
+    font-size:       1.3333333333333333rem;
+}
+
+@media  (min-width: 20em) {
+
+    article > blockquote {
+        font-size:       1.2727272727272727rem;
+    }
+}
+
+@media  (min-width: 48em) {
+
+    article > blockquote {
+        font-size:       1.3333333333333333rem;
+    }
+}
+
+@media  (min-width: 64em) {
+
+    article > blockquote {
+        font-size:       1.2857142857142858rem;
+    }
 }
 
 article li {
     list-style-type: none;
-    position: relative;    /* It is required for setting position to absolute in the next rule. */
+    position: relative;
 }
 
 article li::before {
-    content: '\2022';      /* Unicode for • character */
+    content: '\2022';
     position: absolute;
-    left: -2em;          /* Adjust this value so that it appears where you want. */
-    font-size: 1.1em;      /* Adjust this value so that it appears what size you want. */
+    left: -2em;
 }
 
 footer {
