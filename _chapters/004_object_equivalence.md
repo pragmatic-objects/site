@@ -2,7 +2,7 @@
 layout: post
 title: Objects equality is myth
 description: Do not ever consider two objects equal 
-date: 2018-09-19T00:00:00+03:00
+date: 2018-10-15T00:00:00+03:00
 ---
 
 I always thought that presence of `equals` and `hashCode` in `Object` Java class is deep mistake. Not every object in 
@@ -144,7 +144,7 @@ replace two of them to one and semantics of your program won't change.
 Simplest example of two equivalent objects is two [fraction](001_checked_exceptions.md) objects in example below:
 ```java
 new FracFromString("1/2").equals(
-    new FracFromFile("1/2")
+    new FracFromString("1/2")
 ); // == true
 ```
 

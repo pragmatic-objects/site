@@ -163,7 +163,7 @@ replace two of them to one and semantics of your program won’t change.</p>
 
 <p>Simplest example of two equivalent objects is two <a href="001_checked_exceptions.md">fraction</a> objects in example below:</p>
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">).</span><span class="na">equals</span><span class="o">(</span>
-    <span class="k">new</span> <span class="nf">FracFromFile</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">)</span>
+    <span class="k">new</span> <span class="nf">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">)</span>
 <span class="o">);</span> <span class="c1">// == true</span>
 </code></pre></div></div>
 
