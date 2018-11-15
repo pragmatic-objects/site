@@ -168,7 +168,7 @@ new TeeInputFromUrlToFile(
 
 Formally, we can safely call two objects equivalent if:
 
-- they are instance of the same base class (`FracFromFile` in first case, `TeeInput` in second)
+- they are instance of the same base class (`FracFromString` in first case, `TeeInput` in second)
 - all their fields are equal (this came from the definition of object's identity and equality from the quote I 
 mentioned above)
 
