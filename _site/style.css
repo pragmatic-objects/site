@@ -318,31 +318,14 @@ article > p {
 }
 
 article > blockquote {
-    border-left: 10px solid #ccc;
+    border-left: 0.5rem solid #ccc;
     margin: 0;
+    padding-left: 1rem;
+}
+
+article ul,
+article ol {
     padding-left: 2rem;
-    font-size:       1.3333333333333333rem;
-}
-
-@media  (min-width: 20em) {
-
-    article > blockquote {
-        font-size:       1.2727272727272727rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    article > blockquote {
-        font-size:       1.3333333333333333rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    article > blockquote {
-        font-size:       1.2857142857142858rem;
-    }
 }
 
 article li {
@@ -353,7 +336,7 @@ article li {
 article li::before {
     content: '\2022';
     position: absolute;
-    left: -2em;
+    left: -2rem;
 }
 
 footer {
@@ -387,7 +370,7 @@ footer {
 .highlight {
     font-size:       1.2222222222222223rem;
     line-height: 1.5rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-x: auto;

@@ -125,10 +125,14 @@ article > p {
 }
 
 article > blockquote {
-    border-left: 10px solid #ccc;
+    border-left: 0.5rem solid #ccc;
     margin: 0;
+    padding-left: 1rem;
+}
+
+article ul,
+article ol {
     padding-left: 2rem;
-    font-size: t-step(0);
 }
 
 article li {
@@ -139,7 +143,7 @@ article li {
 article li::before {
     content: '\2022';
     position: absolute;
-    left: -2em;
+    left: -2rem;
 }
 
 footer {
@@ -152,7 +156,7 @@ footer {
 .highlight {
     font-size: t-step(-1);
     line-height: 1.5rem;
-    margin-top: 2rem;
+    margin-top: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-x: auto;
