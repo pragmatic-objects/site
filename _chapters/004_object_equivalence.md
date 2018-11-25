@@ -193,7 +193,7 @@ in testing. In other words, equivalence is not for everyday usage.
 Yet, since objects are not subject for comparisons, equivalence is a good at least for stubbing this nasty `equals` 
 method.
 
-## OO-Atom for generating equivalency logic
+## OO-Atom for generating equivalent logic
 
 Equivalence logic is rather hard to write from scratch (a subject for a future post). For reasoning about 
 two object's equivalence in `equals`, and for keeping `equals` consistent and correct, the class of these objects 
