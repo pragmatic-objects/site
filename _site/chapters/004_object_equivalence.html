@@ -21,11 +21,12 @@
     <a href="/">Back</a>
 </header>
 <article>
-    <p>I always thought that presence of <code class="highlighter-rouge">equals</code> and <code class="highlighter-rouge">hashCode</code> in <code class="highlighter-rouge">Object</code> Java class is deep mistake. Not every object in 
+    <p>I always thought that presence of <code class="highlighter-rouge">equals</code> and <code class="highlighter-rouge">hashCode</code> in <code class="highlighter-rouge">java.util.Object</code> class is deep mistake. Not every 
+object in 
 Java is designed to be a key for some hash map or a subject for comparisons. Yet these two nasty methods were declared
 in the base class, and we must deal with them somehow.</p>
 
-<p>The topic of objects equality was touched by Yegor in this 
+<p>The topic of objects equality was touched by Yegor Bugayenko in this 
 <a href="https://www.yegor256.com/2017/07/11/how-to-redesign-equals.html">post</a>. Yegor provided good arguments why designing 
 <code class="highlighter-rouge">equals</code> is usually painful. Indeed - the contract of method <code class="highlighter-rouge">equals</code> is introduced in such way, that implementing it 
 is impossible without nasty hacks like 

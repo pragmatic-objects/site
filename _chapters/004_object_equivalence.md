@@ -5,11 +5,12 @@ description: Do not ever consider two objects equal
 date: 2018-10-15T00:00:00+03:00
 ---
 
-I always thought that presence of `equals` and `hashCode` in `Object` Java class is deep mistake. Not every object in 
+I always thought that presence of `equals` and `hashCode` in `java.util.Object` class is deep mistake. Not every 
+object in 
 Java is designed to be a key for some hash map or a subject for comparisons. Yet these two nasty methods were declared
 in the base class, and we must deal with them somehow.
 
-The topic of objects equality was touched by Yegor in this 
+The topic of objects equality was touched by Yegor Bugayenko in this 
 [post](https://www.yegor256.com/2017/07/11/how-to-redesign-equals.html). Yegor provided good arguments why designing 
 `equals` is usually painful. Indeed - the contract of method `equals` is introduced in such way, that implementing it 
 is impossible without nasty hacks like 
