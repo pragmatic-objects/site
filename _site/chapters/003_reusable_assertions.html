@@ -22,9 +22,9 @@
 </header>
 <article>
     <p>When reading “Elegant Objects” materials about testing, I was always asking myself: why the tests in Java should look
-so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
-case. I am not criticizing this style, but lets try to make the tests in elegant way and see what profit it may give 
-to us?</p>
+so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures insode a class, 
+one per test case. I am not criticizing this style, but lets try to make the tests in elegant way and see what 
+profit it may give to us?</p>
 
 <p>Let’s consider an example:</p>
 
@@ -187,14 +187,14 @@ which executes a sequence of test cases.</p>
 <h3 id="whats-the-profit">What’s the profit?</h3>
 
 <p>It all may look meaningless: what is the reason to outline just a couple of assertions to a separate class? 
-Isn’t it overcomplicating simple things?</p>
+Isn’t it just overcomplicating simple concepts?</p>
 
 <p>I see the following benefits:</p>
 
 <ul>
   <li>
     <p>Once implemented, <code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> assertion can be used on <em>any</em> possible 
-subtype of <code class="highlighter-rouge">Fraction</code>.</p>
+<a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">subtype</a> of <code class="highlighter-rouge">Fraction</code>.</p>
   </li>
   <li>
     <p>For any highly-segregated interface with clear domain-related semantics (like <code class="highlighter-rouge">Fraction</code>) the number of 
@@ -208,8 +208,8 @@ released together with the <code class="highlighter-rouge">Fraction</code> inter
 <code class="highlighter-rouge">Fraction</code> implementations may reuse its assertions for testing their own stuff.</p>
   </li>
   <li>
-    <p><code class="highlighter-rouge">Assertion</code> implementation may be covered with tests like an ordinary object. Usually, <code class="highlighter-rouge">AssertAssertionPasses</code> and 
-<code class="highlighter-rouge">AssertAssertionFails</code> are enough to cover all possible assertions in the world.</p>
+    <p><code class="highlighter-rouge">Assertion</code> implementations may be covered with tests like an ordinary objects. Usually, <code class="highlighter-rouge">AssertAssertionPasses</code> and 
+<code class="highlighter-rouge">AssertAssertionFails</code> are enough to cover all possible reusable assertions in the world.</p>
   </li>
   <li>
     <p><code class="highlighter-rouge">Assertion</code>’s may be decorated. This is usually useful for scenarios where certain preconditions must be ensured 
@@ -228,7 +228,8 @@ always remains a <a href="https://www.yegor256.com/2017/05/17/single-statement-u
 
 <h3 id="whats-the-pitfalls">What’s the pitfalls?</h3>
 
-<p>So far it sound too good to be true. But there are pitfalls which must be taken into account when using this method:</p>
+<p>So far it sounds too good to be true. But there are several concerns which must be taken into account when using this
+approach:</p>
 
 <ul>
   <li>The interfaces of objects under test must be <a href="https://en.wikipedia.org/wiki/Interface_segregation_principle">highly-segregated</a>.</li>
@@ -241,9 +242,9 @@ simple—we expect it to have certain values for numerator and denominator and t
 such invariant one may write an assertion and use it on each future implementation.</p>
 
 <p>In case of large objects with dozens of methods, like DAO, controllers and services, the number of such invariants is
-scaled with each additional method—there will be too many assertions. Also, since the public contract of such
-objects is inflexible, these assertions wouldn’t be reused effectively. Testing such objects with reusable assertions
-is waste.</p>
+scaled with each additional method—there will be too many different <code class="highlighter-rouge">Assertion</code> implementations per one object. Also, 
+since the public contract of such objects is inflexible, these assertions will not be reused effectively. Testing 
+such objects with reusable assertions is waste.</p>
 
 <p>Elegant objects, on the other hand, if designed right, usually suit the requirements enumerated above. So, write 
 objects in Elegant way, and test them with elegant reusable assertions.</p>

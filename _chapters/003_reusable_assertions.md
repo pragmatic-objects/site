@@ -6,9 +6,9 @@ date: 2018-09-19T00:00:00+03:00
 ---
 
 When reading "Elegant Objects" materials about testing, I was always asking myself: why the tests in Java should look
-so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
-case. I am not criticizing this style, but lets try to make the tests in elegant way and see what profit it may give 
-to us?
+so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures insode a class, 
+one per test case. I am not criticizing this style, but lets try to make the tests in elegant way and see what 
+profit it may give to us?
 
 Let's consider an example:
 
@@ -177,12 +177,12 @@ which executes a sequence of test cases.
 ### What's the profit?
 
 It all may look meaningless: what is the reason to outline just a couple of assertions to a separate class? 
-Isn't it overcomplicating simple things?
+Isn't it just overcomplicating simple concepts?
 
 I see the following benefits:
 
 - Once implemented, `AssertFractionHasCertainNumenatorAndDenominator` assertion can be used on *any* possible 
-subtype of `Fraction`.
+[subtype](https://en.wikipedia.org/wiki/Liskov_substitution_principle) of `Fraction`.
 
 - For any highly-segregated interface with clear domain-related semantics (like `Fraction`) the number of 
 needed assertions is usually limited. For fraction, single `AssertFractionHasCertainNumenatorAndDenominator` would 
@@ -193,8 +193,8 @@ we would want to test is that fraction under test has certain numerator and deno
 released together with the `Fraction` interface, so that developers who extend the solution by providing new 
 `Fraction` implementations may reuse its assertions for testing their own stuff.
 
-- `Assertion` implementation may be covered with tests like an ordinary object. Usually, `AssertAssertionPasses` and 
-`AssertAssertionFails` are enough to cover all possible assertions in the world.
+- `Assertion` implementations may be covered with tests like an ordinary objects. Usually, `AssertAssertionPasses` and 
+`AssertAssertionFails` are enough to cover all possible reusable assertions in the world.
 
 - `Assertion`'s may be decorated. This is usually useful for scenarios where certain preconditions must be ensured 
 before executing original assertion.
@@ -208,7 +208,8 @@ always remains a [single statement](https://www.yegor256.com/2017/05/17/single-s
 
 ### What's the pitfalls?
 
-So far it sound too good to be true. But there are pitfalls which must be taken into account when using this method:
+So far it sounds too good to be true. But there are several concerns which must be taken into account when using this
+approach:
 
 - The interfaces of objects under test must be [highly-segregated](https://en.wikipedia.org/wiki/Interface_segregation_principle).
 - The classes under test must be [single-responsible](https://en.wikipedia.org/wiki/Single_responsibility_principle).
@@ -219,9 +220,9 @@ simple---we expect it to have certain values for numerator and denominator and t
 such invariant one may write an assertion and use it on each future implementation.
 
 In case of large objects with dozens of methods, like DAO, controllers and services, the number of such invariants is
-scaled with each additional method---there will be too many assertions. Also, since the public contract of such
-objects is inflexible, these assertions wouldn't be reused effectively. Testing such objects with reusable assertions
-is waste.
+scaled with each additional method---there will be too many different `Assertion` implementations per one object. Also, 
+since the public contract of such objects is inflexible, these assertions will not be reused effectively. Testing 
+such objects with reusable assertions is waste.
 
 Elegant objects, on the other hand, if designed right, usually suit the requirements enumerated above. So, write 
 objects in Elegant way, and test them with elegant reusable assertions.
