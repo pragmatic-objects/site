@@ -5,8 +5,8 @@ description: Elegant way of testing Elegant Objects
 date: 2018-09-19T00:00:00+03:00
 ---
 
-When reading "Elegant object" materials about testing, I was always asking myself: why the tests should look so 
-procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
+When reading "Elegant Objects" materials about testing, I was always asking myself: why the tests in Java should look
+so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
 case. I am not criticizing this style, but lets try to make the tests in elegant way and see what profit it may give 
 to us?
 
@@ -107,8 +107,9 @@ Practically, I am already repeating myself. For each case I am repeating asserti
 Also, two assertions per test is not good enough:
 one statement test would be [better](https://www.yegor256.com/2017/05/17/single-statement-unit-tests.html). 
 
-And these were simple examples: what if I take `FracFromFile` or implement an SQL-speaking fraction? I'd need to 
-prepare test environment somewhere: create a file for test or bootstrap test database.
+And these were simple examples: what if I take `FracFromFile` or implement 
+an [SQL-speaking](https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html#sql-speaking-objects) fraction? 
+I'd need to prepare test environment somewhere: create a file for test or bootstrap test database.
 
 ## What's the alternative?
 

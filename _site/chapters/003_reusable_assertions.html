@@ -21,8 +21,8 @@
     <a href="/">Back</a>
 </header>
 <article>
-    <p>When reading “Elegant object” materials about testing, I was always asking myself: why the tests should look so 
-procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
+    <p>When reading “Elegant Objects” materials about testing, I was always asking myself: why the tests in Java should look
+so procedural? Usually, class of a typical JUnit-based test suite is nothing but a bunch of procedures, one per test 
 case. I am not criticizing this style, but lets try to make the tests in elegant way and see what profit it may give 
 to us?</p>
 
@@ -120,8 +120,9 @@ oh wait! I am repeating myself. Lets just take some implementations from <a href
 Also, two assertions per test is not good enough:
 one statement test would be <a href="https://www.yegor256.com/2017/05/17/single-statement-unit-tests.html">better</a>.</p>
 
-<p>And these were simple examples: what if I take <code class="highlighter-rouge">FracFromFile</code> or implement an SQL-speaking fraction? I’d need to 
-prepare test environment somewhere: create a file for test or bootstrap test database.</p>
+<p>And these were simple examples: what if I take <code class="highlighter-rouge">FracFromFile</code> or implement 
+an <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html#sql-speaking-objects">SQL-speaking</a> fraction? 
+I’d need to prepare test environment somewhere: create a file for test or bootstrap test database.</p>
 
 <h2 id="whats-the-alternative">What’s the alternative?</h2>
 
