@@ -9,7 +9,7 @@ The class of any Elegant object must be either
 [abstract or final](https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html#7-his-class-is-either-final-or-abstract).
 The intention behind this rule, I believe, was eliminating implementation inheritance as a kind. Drawbacks of 
 inheritance and behefits of subtyping are rather [clear](https://www.yegor256.com/2016/09/13/inheritance-is-procedural.html), 
-so I won't make an accent on them. However, in my practice I quickly realized that something is wrong with this rule.
+so I won't emphasize them here. However, in my practice I quickly realized that something is wrong with this rule.
 
 Check the class
 [`TeeInput`](https://github.com/yegor256/cactoos/blob/0.13.3/src/main/java/org/cactoos/io/TeeInput.java) from
