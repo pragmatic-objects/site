@@ -5,7 +5,7 @@ description: Inheritance iS not evil if done right.
 date: 2019-01-30T00:00:00+03:00
 ---
 
-Position of Yegor Bugayenko and his "Elegant Objects" towards implementation inheritance is known for quite a long time
+Position of Yegor Bugayenko and "Elegant Objects" towards implementation inheritance is known for quite a long time
 and clearly outlined in this [post](https://www.yegor256.com/2016/09/13/inheritance-is-procedural.html).
 Inheritance was named "procedural technique for code reuse" and banished in favor of what is called "subtyping".
 It causes a dangerous tendency in EO community, directed to eliminating implementation
