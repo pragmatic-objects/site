@@ -61,7 +61,7 @@ interface AtMostOneItem<T> extends AtLeastOneItem<T> {
 
 void printFirstItem(AtLeastOneItem<T> item) {
     // Since there is at least one item, we can omit checking on empty set, can't we?
-    return item.iterator().next();
+    System.out.println(item.iterator().next());
     // Yet someone may pass us instance of empty AtMostOneItem instance - oh, shi...
 }
 ```
@@ -78,9 +78,9 @@ Liskov substitution principle says that:
 > 
 > [Wikipedia](https://en.wikipedia.org/wiki/Liskov_substitution_principle)
 
-In our example, there is a program named `printOneItem`, which becomes incorrect if we pass the instances of `AtLeastOneItem` instead of
-`AtMostOneItem`, originally defined in signature. It is direct contradiction of the principle, so we cannot call `AtMostOneItem` a subtype, despite
-the fact that it implements `AtMostOneItem`. Yet Java doesn't care --- the code will compile and run.
+In our example, there is a program named `printOneItem`, which becomes incorrect if we pass the instances of `AtMostOneItem` instead of
+`AtLeastOneItem`, originally defined in signature. It is direct contradiction of the principle, so we cannot call `AtMostOneItem` a subtype, despite
+the fact that it implements `AtLeastOneItem`. Yet Java doesn't care --- the code will compile and run.
 
 Is it really subtyping we love?
 
