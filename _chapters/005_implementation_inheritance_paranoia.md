@@ -62,7 +62,7 @@ interface AtMostOneItem<T> extends AtLeastOneItem<T> {
 void printFirstItem(AtLeastOneItem<T> item) {
     // Since there is at least one item, we can omit checking on empty set, can't we?
     System.out.println(item.iterator().next());
-    // Yet someone may pass us instance of empty AtMostOneItem instance - oh, shi...
+    // Yet someone may pass us empty instance of AtMostOneItem - oh, shi...
 }
 ```
 
