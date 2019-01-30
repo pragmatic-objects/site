@@ -133,7 +133,7 @@ Of course, in order to apply these rules, all classes should be [open for extens
 
 Child classes, which follow these rules, I call *aliases*. Here are some examples:
 
-```
+```java
 interface Fraction {
     int numerator();
     int denominator();

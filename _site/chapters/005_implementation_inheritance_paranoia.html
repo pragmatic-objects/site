@@ -157,44 +157,44 @@ So, why not fighting the root cause instead?</p>
 
 <p>Child classes, which follow these rules, I call <em>aliases</em>. Here are some examples:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>interface Fraction {
-    int numerator();
-    int denominator();
-}
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
 
-// base class
-class FracStatic implements Fraction {
-    private final int numerator;
-    private final int denominator;
+<span class="c1">// base class</span>
+<span class="kd">class</span> <span class="nc">FracStatic</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">;</span>
 
-    public FracStatic(int numerator, int denominator) {
-        this.numerator = numerator;
-        this.denominator = denominator;
-    }
+    <span class="kd">public</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="kt">int</span> <span class="n">numerator</span><span class="o">,</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">numerator</span> <span class="o">=</span> <span class="n">numerator</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">denominator</span> <span class="o">=</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int numerator() {
-        return numerator;
-    }
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="o">}</span>
 
-    public final int denominator() {
-        return denominator;
-    }
-}
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 
-// an alias
-class FracOneHalf extends FracStatic {
-    public FracOneHalf() {
-        super(1, 2);
-    }
-}
+<span class="c1">// an alias</span>
+<span class="kd">class</span> <span class="nc">FracOneHalf</span> <span class="kd">extends</span> <span class="n">FracStatic</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">FracOneHalf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 
 
-// another alias
-class FracOneThird extends FracStatic {
-    public FracOneHalf() {
-        super(1, 3);
-    }
-}
+<span class="c1">// another alias</span>
+<span class="kd">class</span> <span class="nc">FracOneThird</span> <span class="kd">extends</span> <span class="n">FracStatic</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">FracOneHalf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
 </code></pre></div></div>
 
 <p>Aliases have interesting capability — they <em>never</em> break Liskov Substitution principle. They just can’t break it. It’s just impossible without violating aliases’ rules.
