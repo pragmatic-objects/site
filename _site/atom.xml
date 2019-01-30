@@ -4,7 +4,7 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2019-01-04T11:45:19Z</updated>
+  <updated>2019-01-31T01:46:22Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -49,6 +49,14 @@
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/004_object_equivalence.html" />
     <updated>2018-10-15T00:00:00+03:00</updated>
+  </entry>
+  
+  <entry>
+    <title>Implementation inheritance paranoia</title>
+    <id>https://pragmaticobjects.com/chapters/005_implementation_inheritance_paranoia</id>
+    <link rel="alternate" type="text/html"
+          href="https://pragmaticobjects.com/chapters/005_implementation_inheritance_paranoia.html" />
+    <updated>2019-01-30T00:00:00+03:00</updated>
   </entry>
   
 </feed>
