@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Implementation inheritance paranoia
-description: Inheritance iS not evil if done right.
+description: Inheritance is not evil if done right.
 date: 2019-01-30T00:00:00+03:00
 ---
 
