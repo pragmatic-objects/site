@@ -4,7 +4,7 @@ module.exports = () => ({
     plugins: [
         typographist({
             base: '12px',
-            lineHeight: 1.5,
+            lineHeight: 2, 
             ratio: ratios.MAJOR_SECOND,
             mobile: {
                 breakpoint: '20em',
@@ -18,7 +18,7 @@ module.exports = () => ({
             },
             desktop: {
                 breakpoint: '64em',
-                base: '18px',
+                base: '20px',
                 ratio: ratios.MINOR_THIRD
             }
         })

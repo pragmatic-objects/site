@@ -2,33 +2,33 @@
     --mobile:       320;
     --tablet:       768;
     --desktop:       1024;
-    font-size:       56.25%;
+    font-size:       75%;
     font-family:       serif;
 }
 
 @media  (min-width: 20em) {
 
     :root {
-        font-size:       calc(56.25% + 3 * ((100vw - 20em) / 448));
+        font-size:       calc(75% + 4 * ((100vw - 20em) / 448));
     }
 }
 
 @media  (min-width: 48em) {
 
     :root {
-        font-size:       calc(75% + 2 * ((100vw - 48em) / 256));
+        font-size:       calc(100% + 4 * ((100vw - 48em) / 256));
     }
 }
 
 @media  (min-width: 64em) {
 
     :root {
-        font-size:       87.5%;
+        font-size:       125%;
     }
 }
 
 body {
-    font-size:       1.3333333333333333rem;
+    font-size:       1rem;
     line-height:       2rem;
     font-style: normal;
     font-weight: normal;
@@ -39,21 +39,21 @@ body {
 @media  (min-width: 20em) {
 
     body {
-        font-size:       1.2727272727272727rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     body {
-        font-size:       1.3333333333333333rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     body {
-        font-size:       1.2857142857142858rem;
+        font-size:       1rem;
     }
 }
 
@@ -71,7 +71,6 @@ a {
     background-size: 100% 0.15rem;
     text-shadow: 0.1rem 0 #fff, 0.15rem 0 #fff,
     -0.1rem 0 #fff, -0.15rem 0 #fff;
-
 }
 
 a:hover,
@@ -80,9 +79,6 @@ a:focus {
     text-decoration: none;
     background-image: none;
 }
-
-
-
 
 b {
     color: #303030;
@@ -99,7 +95,7 @@ h6 {
 }
 
 h1 {
-    font-size:       2.6666666666666665rem;
+    font-size:       2rem;
     line-height: 4rem;
     margin-top: 8rem;
     margin-bottom: 1rem;
@@ -108,26 +104,26 @@ h1 {
 @media  (min-width: 20em) {
 
     h1 {
-        font-size:       3.8181818181818183rem;
+        font-size:       3rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h1 {
-        font-size:       4rem;
+        font-size:       3rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h1 {
-        font-size:       3.857142857142857rem;
+        font-size:       3rem;
     }
 }
 
 h2 {
-    font-size:       2.111111111111111rem;
+    font-size:       1.5833333333333333rem;
     margin-top: 5rem;
     margin-bottom: 1rem;
 }
@@ -135,26 +131,26 @@ h2 {
 @media  (min-width: 20em) {
 
     h2 {
-        font-size:       2.6363636363636362rem;
+        font-size:       2.0714285714285716rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h2 {
-        font-size:       2.75rem;
+        font-size:       2.0625rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h2 {
-        font-size:       2.642857142857143rem;
+        font-size:       2.05rem;
     }
 }
 
 h3 {
-    font-size:       1.6666666666666667rem;
+    font-size:       1.25rem;
     margin-top: 4rem;
     margin-bottom: 1rem;
 }
@@ -162,26 +158,26 @@ h3 {
 @media  (min-width: 20em) {
 
     h3 {
-        font-size:       1.8181818181818181rem;
+        font-size:       1.4285714285714286rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h3 {
-        font-size:       1.9166666666666667rem;
+        font-size:       1.4375rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h3 {
-        font-size:       1.8571428571428572rem;
+        font-size:       1.45rem;
     }
 }
 
 h4 {
-    font-size:       1.5555555555555556rem;
+    font-size:       1.1666666666666667rem;
     margin-top: 3rem;
     margin-bottom: 1rem;
 }
@@ -189,26 +185,26 @@ h4 {
 @media  (min-width: 20em) {
 
     h4 {
-        font-size:       1.5454545454545454rem;
+        font-size:       1.2142857142857142rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h4 {
-        font-size:       1.5833333333333333rem;
+        font-size:       1.1875rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h4 {
-        font-size:       1.5714285714285714rem;
+        font-size:       1.2rem;
     }
 }
 
 h5 {
-    font-size:       1.3333333333333333rem;
+    font-size:       1rem;
     margin-top: 5rem;
     margin-bottom: 1rem;
 }
@@ -216,26 +212,26 @@ h5 {
 @media  (min-width: 20em) {
 
     h5 {
-        font-size:       1.2727272727272727rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h5 {
-        font-size:       1.3333333333333333rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h5 {
-        font-size:       1.2857142857142858rem;
+        font-size:       1rem;
     }
 }
 
 h6 {
-    font-size:       1.3333333333333333rem;
+    font-size:       1rem;
     font-style: italic;
     margin-top: 5rem;
     margin-bottom: 1rem;
@@ -244,21 +240,21 @@ h6 {
 @media  (min-width: 20em) {
 
     h6 {
-        font-size:       1.2727272727272727rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     h6 {
-        font-size:       1.3333333333333333rem;
+        font-size:       1rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     h6 {
-        font-size:       1.2857142857142858rem;
+        font-size:       1rem;
     }
 }
 
@@ -272,27 +268,27 @@ header > h1 {
 }
 
 header > a {
-    font-size:       1.2222222222222223rem;
+    font-size:       0.9166666666666666rem;
 }
 
 @media  (min-width: 20em) {
 
     header > a {
-        font-size:       1.0909090909090908rem;
+        font-size:       0.8571428571428571rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     header > a {
-        font-size:       1.0833333333333333rem;
+        font-size:       0.8125rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     header > a {
-        font-size:       1.0714285714285714rem;
+        font-size:       0.85rem;
     }
 }
 
@@ -341,36 +337,37 @@ article li::before {
 
 footer {
     margin-top: 5rem;
-    font-size:       1rem;
+    font-size:       0.75rem;
     text-align: center;
 }
 
 @media  (min-width: 20em) {
 
     footer {
-        font-size:       0.9090909090909091rem;
+        font-size:       0.7142857142857143rem;
     }
 }
 
 @media  (min-width: 48em) {
 
     footer {
-        font-size:       0.9166666666666666rem;
+        font-size:       0.6875rem;
     }
 }
 
 @media  (min-width: 64em) {
 
     footer {
-        font-size:       0.9285714285714286rem;
+        font-size:       0.7rem;
     }
 }
 
 
 .highlight {
-    font-size:       1.2222222222222223rem;
-    line-height: 1.5rem;
+    font-size:       0.9166666666666666rem;
+    line-height: 1rem;
     margin-top: 1rem;
+    margin-bottom: 1rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-x: auto;
@@ -380,7 +377,7 @@ footer {
 @media  (min-width: 20em) {
 
     .highlight {
-        font-size:       1.0909090909090908rem;
+        font-size:       0.8571428571428571rem;
     }
 }
 
@@ -388,7 +385,7 @@ footer {
 @media  (min-width: 48em) {
 
     .highlight {
-        font-size:       1.0833333333333333rem;
+        font-size:       0.8125rem;
     }
 }
 
@@ -396,7 +393,7 @@ footer {
 @media  (min-width: 64em) {
 
     .highlight {
-        font-size:       1.0714285714285714rem;
+        font-size:       0.85rem;
     }
 }
 
