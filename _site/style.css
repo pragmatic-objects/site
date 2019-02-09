@@ -1,62 +1,76 @@
-:root {
-    --mobile:       320;
-    --tablet:       768;
-    --desktop:       1024;
-    font-size:       75%;
-    font-family:       serif;
+html, :root {
+  font-size: 14px;
+  line-height: 21px;
+  font-family: 'Noto serif', serif;
 }
-
-@media  (min-width: 20em) {
-
-    :root {
-        font-size:       calc(75% + 4 * ((100vw - 20em) / 448));
-    }
+code {
+  font-size: 1rem;
+  font-family: 'Cousine', monospace;
 }
-
-@media  (min-width: 48em) {
-
-    :root {
-        font-size:       calc(100% + 4 * ((100vw - 48em) / 256));
-    }
-}
-
-@media  (min-width: 64em) {
-
-    :root {
-        font-size:       125%;
-    }
-}
-
 body {
-    font-size:       1rem;
-    line-height:       2rem;
-    font-style: normal;
-    font-weight: normal;
-    background-color: #fff;
-    color: #515151;
+  font-family: 'Noto serif', serif;
+/*  font-size: 1rem;
+  line-height: 1.5rem;*/
+  margin: auto;
+  font-style: normal;
+  font-weight: normal;
+  background-color: #fff;
+  color: #515151;
 }
-
-@media  (min-width: 20em) {
-
-    body {
-        font-size:       1rem;
-    }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Oswald', sans-serif;
+    color: #313131;
 }
-
-@media  (min-width: 48em) {
-
-    body {
-        font-size:       1rem;
-    }
+h1, .h1 {
+  font-size: 4.2358rem;
+  line-height: 4.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
 }
-
-@media  (min-width: 64em) {
-
-    body {
-        font-size:       1rem;
-    }
+h2, .h2 {
+  font-size: 2.6179rem;
+  line-height: 3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
 }
-
+h3, .h3 {
+  font-size: 1.618rem;
+  line-height: 3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+h4, .h4 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+h5, .h5 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+p, ul, ol, pre, table, blockquote, div.highlight {
+  margin-top: 0rem;
+  margin-bottom: 1.5rem;
+}
+ul ul, ol ol, ul ol, ol ul, div.highlight pre {
+  margin-top: 0rem;
+  margin-bottom: 0rem;
+}
+hr, .hr {
+  border: 1px solid;
+  margin: -1px 0;
+}
+a, b, i, strong, em, small, code {
+  line-height: 0;
+}
 a {
     color: #268bd2;
     text-decoration: none;
@@ -72,224 +86,27 @@ a {
     text-shadow: 0.1rem 0 #fff, 0.15rem 0 #fff,
     -0.1rem 0 #fff, -0.15rem 0 #fff;
 }
-
 a:hover,
 a:active,
 a:focus {
     text-decoration: none;
     background-image: none;
 }
-
 b {
     color: #303030;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: Arial, Helvetica, sans-serif;
-    color: #313131;
-}
-
-h1 {
-    font-size:       2rem;
-    line-height: 4rem;
-    margin-top: 8rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h1 {
-        font-size:       3rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h1 {
-        font-size:       3rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h1 {
-        font-size:       3rem;
-    }
-}
-
-h2 {
-    font-size:       1.5833333333333333rem;
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h2 {
-        font-size:       2.0714285714285716rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h2 {
-        font-size:       2.0625rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h2 {
-        font-size:       2.05rem;
-    }
-}
-
-h3 {
-    font-size:       1.25rem;
-    margin-top: 4rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h3 {
-        font-size:       1.4285714285714286rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h3 {
-        font-size:       1.4375rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h3 {
-        font-size:       1.45rem;
-    }
-}
-
-h4 {
-    font-size:       1.1666666666666667rem;
-    margin-top: 3rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h4 {
-        font-size:       1.2142857142857142rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h4 {
-        font-size:       1.1875rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h4 {
-        font-size:       1.2rem;
-    }
-}
-
-h5 {
-    font-size:       1rem;
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h5 {
-        font-size:       1rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h5 {
-        font-size:       1rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h5 {
-        font-size:       1rem;
-    }
-}
-
-h6 {
-    font-size:       1rem;
-    font-style: italic;
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
-@media  (min-width: 20em) {
-
-    h6 {
-        font-size:       1rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    h6 {
-        font-size:       1rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    h6 {
-        font-size:       1rem;
-    }
-}
-
 header {
-    margin-bottom: 7rem;
+    margin-bottom: 6rem;
     text-align: center;
 }
 
 header > h1 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 header > a {
-    font-size:       0.9166666666666666rem;
-}
-
-@media  (min-width: 20em) {
-
-    header > a {
-        font-size:       0.8571428571428571rem;
-    }
-}
-
-@media  (min-width: 48em) {
-
-    header > a {
-        font-size:       0.8125rem;
-    }
-}
-
-@media  (min-width: 64em) {
-
-    header > a {
-        font-size:       0.85rem;
-    }
+    font-size: 1rem;
 }
 
 #contents {
@@ -306,7 +123,6 @@ header > a {
 }
 
 article > p {
-    margin-top: 2rem;
     -ms-hyphens: auto;
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
@@ -335,92 +151,107 @@ article li::before {
     left: -2rem;
 }
 
+article {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    clear: both;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+#disqus_thread {
+    margin-top: 7.5rem;
+    margin-bottom: 3rem;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    clear: both;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
 footer {
-    margin-top: 5rem;
-    font-size:       0.75rem;
+    margin-top: 6rem;
+    font-size: 0.618rem;
     text-align: center;
 }
 
-@media  (min-width: 20em) {
+sub, sup {
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.5em;
+}
+sub {
+  bottom: -0.25em;
+}
 
-    footer {
-        font-size:       0.7142857142857143rem;
-    }
+div.highlight {
+    font-size: 0.7777777777777778rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+@media  (min-width: 20em) {
+  div.highlight {
+    font-size: 0.8181818181818182rem;
+  }
 }
 
 @media  (min-width: 48em) {
-
-    footer {
-        font-size:       0.6875rem;
-    }
+  div.highlight {
+    font-size: 0.8333333333333334rem;
+  }
 }
 
 @media  (min-width: 64em) {
-
-    footer {
-        font-size:       0.7rem;
-    }
+  div.highlight {
+    font-size: 0.7857142857142857rem;
+  }
 }
 
-
-.highlight {
-    font-size:       0.9166666666666666rem;
-    line-height: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
+pre.highlight {
     overflow-x: auto;
 }
 
 
-@media  (min-width: 20em) {
-
-    .highlight {
-        font-size:       0.8571428571428571rem;
+@media  (min-width: 20em) { 
+    html, :root {
+      font-size: 16px;
+      line-height: 24px;
     }
 }
-
-
+ 
 @media  (min-width: 48em) {
-
-    .highlight {
-        font-size:       0.8125rem;
+    html, :root {
+      font-size: 18px;
+      line-height: 27px;
     }
 }
-
 
 @media  (min-width: 64em) {
-
-    .highlight {
-        font-size:       0.85rem;
+    html, :root {
+      font-size: 20px;
+      line-height: 30px;
     }
 }
 
 @media  (min-width: 60rem) {
     article {
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        clear: both;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
         width: 60rem;
     }
 
     #disqus_thread {
-        margin-top: 10rem;
-        margin-bottom: 2rem;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        clear: both;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
         width: 60rem;
     }
 }
+

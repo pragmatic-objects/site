@@ -1,16 +1,76 @@
-:root {
-    @t-root(fluid);
-    font-family:       serif;
+html, :root {
+  font-size: 14px;
+  line-height: 21px;
+  font-family: 'Noto serif', serif;
 }
-
+code {
+  font-size: 1rem;
+  font-family: 'Cousine', monospace;
+}
 body {
-    @t-base;
-    font-style: normal;
-    font-weight: normal;
-    background-color: #fff;
-    color: #515151;
+  font-family: 'Noto serif', serif;
+/*  font-size: 1rem;
+  line-height: 1.5rem;*/
+  margin: auto;
+  font-style: normal;
+  font-weight: normal;
+  background-color: #fff;
+  color: #515151;
 }
-
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Oswald', sans-serif;
+    color: #313131;
+}
+h1, .h1 {
+  font-size: 4.2358rem;
+  line-height: 4.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+}
+h2, .h2 {
+  font-size: 2.6179rem;
+  line-height: 3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+h3, .h3 {
+  font-size: 1.618rem;
+  line-height: 3rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+h4, .h4 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+h5, .h5 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0rem;
+}
+p, ul, ol, pre, table, blockquote, div.highlight {
+  margin-top: 0rem;
+  margin-bottom: 1.5rem;
+}
+ul ul, ol ol, ul ol, ol ul, div.highlight pre {
+  margin-top: 0rem;
+  margin-bottom: 0rem;
+}
+hr, .hr {
+  border: 1px solid;
+  margin: -1px 0;
+}
+a, b, i, strong, em, small, code {
+  line-height: 0;
+}
 a {
     color: #268bd2;
     text-decoration: none;
@@ -26,77 +86,27 @@ a {
     text-shadow: 0.1rem 0 #fff, 0.15rem 0 #fff,
     -0.1rem 0 #fff, -0.15rem 0 #fff;
 }
-
 a:hover,
 a:active,
 a:focus {
     text-decoration: none;
     background-image: none;
 }
-
 b {
     color: #303030;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: Arial, Helvetica, sans-serif;
-    color: #313131;
-}
-
-h1 {
-    font-size: t-step(6);
-    line-height: 4rem;
-    margin-top: 8rem;
-    margin-bottom: 1rem;
-}
-
-h2 {
-    font-size: t-step(4);
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
-h3 {
-    font-size: t-step(2);
-    margin-top: 4rem;
-    margin-bottom: 1rem;
-}
-
-h4 {
-    font-size: t-step(1);
-    margin-top: 3rem;
-    margin-bottom: 1rem;
-}
-
-h5 {
-    font-size: t-step(0);
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
-h6 {
-    font-size: t-step(0);
-    font-style: italic;
-    margin-top: 5rem;
-    margin-bottom: 1rem;
-}
-
 header {
-    margin-bottom: 7rem;
+    margin-bottom: 6rem;
     text-align: center;
 }
 
 header > h1 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
 }
 
 header > a {
-    font-size: t-step(-1);
+    font-size: 1rem;
 }
 
 #contents {
@@ -113,7 +123,6 @@ header > a {
 }
 
 article > p {
-    margin-top: 2rem;
     -ms-hyphens: auto;
     -webkit-hyphens: auto;
     -moz-hyphens: auto;
@@ -142,47 +151,89 @@ article li::before {
     left: -2rem;
 }
 
+article {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    clear: both;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
+#disqus_thread {
+    margin-top: 7.5rem;
+    margin-bottom: 3rem;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    clear: both;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+}
+
 footer {
-    margin-top: 5rem;
-    font-size: t-step(-2);
+    margin-top: 6rem;
+    font-size: 0.618rem;
     text-align: center;
 }
 
+sub, sup {
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sup {
+  top: -0.5em;
+}
+sub {
+  bottom: -0.25em;
+}
 
-.highlight {
+div.highlight {
     font-size: t-step(-1);
-    line-height: 1rem;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
+}
+
+pre.highlight {
     overflow-x: auto;
+}
+
+
+@media  (min-width: 20em) { 
+    html, :root {
+      font-size: 16px;
+      line-height: 24px;
+    }
+}
+ 
+@media  (min-width: 48em) {
+    html, :root {
+      font-size: 18px;
+      line-height: 27px;
+    }
+}
+
+@media  (min-width: 64em) {
+    html, :root {
+      font-size: 20px;
+      line-height: 30px;
+    }
 }
 
 @media  (min-width: 60rem) {
     article {
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        clear: both;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
         width: 60rem;
     }
 
     #disqus_thread {
-        margin-top: 10rem;
-        margin-bottom: 2rem;
-        -webkit-box-sizing: border-box;
-        -moz-box-sizing: border-box;
-        box-sizing: border-box;
-        clear: both;
-        margin-left: auto;
-        margin-right: auto;
-        padding-left: 1rem;
-        padding-right: 1rem;
         width: 60rem;
     }
 }
+
