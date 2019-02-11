@@ -1,3 +1,5 @@
+@import url(https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css);
+
 html, :root {
   font-size: 14px;
   line-height: 21px;
@@ -5,7 +7,7 @@ html, :root {
 }
 code {
   font-size: 1rem;
-  font-family: 'Cousine', monospace;
+  font-family: 'Fira Code', monospace;
 }
 body {
   font-family: 'Noto serif', serif;

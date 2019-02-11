@@ -1,3 +1,5 @@
+@import url(https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css);
+
 html, :root {
   font-size: 14px;
   line-height: 21px;
@@ -5,7 +7,7 @@ html, :root {
 }
 code {
   font-size: 1rem;
-  font-family: 'Cousine', monospace;
+  font-family: 'Fira Code', monospace;
 }
 body {
   font-family: 'Noto serif', serif;
@@ -201,20 +203,23 @@ div.highlight {
     padding-right: 1rem;
 }
 
-@media  (min-width: 20em) {
-  div.highlight {
+@media  (min-width: 20em){
+
+  div.highlight{
     font-size: 0.8181818181818182rem;
   }
 }
 
-@media  (min-width: 48em) {
-  div.highlight {
+@media  (min-width: 48em){
+
+  div.highlight{
     font-size: 0.8333333333333334rem;
   }
 }
 
-@media  (min-width: 64em) {
-  div.highlight {
+@media  (min-width: 64em){
+
+  div.highlight{
     font-size: 0.7857142857142857rem;
   }
 }
