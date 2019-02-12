@@ -138,12 +138,12 @@ First, let’s introduce an <code class="highlighter-rouge">Assertion</code> int
 
 <p>Then, lets encapsulate repeating assertions to its implementation:</p>
 
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">AssertFractionHasCertainNumenatorAndDenominator</span> <span class="kd">implements</span> <span class="n">Assertion</span> <span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">AssertFractionHasCertainNumeratorAndDenominator</span> <span class="kd">implements</span> <span class="n">Assertion</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">fraction</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">expectedNumerator</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kt">int</span> <span class="n">expectedDenominator</span><span class="o">;</span>
     
-    <span class="kd">public</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">fraction</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">AssertFractionHasCertainNumeratorAndDenominator</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">fraction</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">.</span><span class="na">fraction</span> <span class="o">=</span> <span class="n">fraction</span><span class="o">;</span>
     <span class="o">}</span>
     
@@ -161,7 +161,7 @@ First, let’s introduce an <code class="highlighter-rouge">Assertion</code> int
         <span class="kd">super</span><span class="o">(</span>
             <span class="k">new</span> <span class="nf">TestCase</span><span class="o">(</span>
                 <span class="s">"assert that 1/2 + 1/3 = 5/6"</span><span class="o">,</span>
-                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span>
+                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumeratorAndDenominator</span><span class="o">(</span>
                     <span class="k">new</span> <span class="nf">FracSum</span><span class="o">(</span>
                         <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span>
                         <span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">)</span>
@@ -171,7 +171,7 @@ First, let’s introduce an <code class="highlighter-rouge">Assertion</code> int
             <span class="o">),</span>
             <span class="k">new</span> <span class="nf">TestCase</span><span class="o">(</span>
                 <span class="s">"assert that \"1/2\" string is parsed to a 1/2 fraction"</span><span class="o">,</span>
-                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumenatorAndDenominator</span><span class="o">(</span>
+                <span class="k">new</span> <span class="nf">AssertFractionHasCertainNumeratorAndDenominator</span><span class="o">(</span>
                     <span class="k">new</span> <span class="nf">FracFromString</span><span class="o">(</span><span class="s">"1/2"</span><span class="o">),</span>
                     <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span>
                 <span class="o">)</span>
@@ -195,17 +195,17 @@ Isn’t it just overcomplicating simple concepts?</p>
 
 <ul>
   <li>
-    <p>Once implemented, <code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> assertion can be used on <em>any</em> possible 
+    <p>Once implemented, <code class="highlighter-rouge">AssertFractionHasCertainNumeratorAndDenominator</code> assertion can be used on <em>any</em> possible 
 <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">subtype</a> of <code class="highlighter-rouge">Fraction</code>.</p>
   </li>
   <li>
     <p>For any highly-segregated interface with clear domain-related semantics (like <code class="highlighter-rouge">Fraction</code>) the number of 
-needed assertions is usually limited. For fraction, single <code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> would 
+needed assertions is usually limited. For fraction, single <code class="highlighter-rouge">AssertFractionHasCertainNumeratorAndDenominator</code> would 
 cover the majority of possible test scenarios with fractions. When we test a new <code class="highlighter-rouge">Fraction</code> implementation, first thing
 we would want to test is that fraction under test has certain numerator and denominator.</p>
   </li>
   <li>
-    <p><code class="highlighter-rouge">AssertFractionHasCertainNumenatorAndDenominator</code> assertion, like any other <code class="highlighter-rouge">Assertion</code> implementations, may be 
+    <p><code class="highlighter-rouge">AssertFractionHasCertainNumeratorAndDenominator</code> assertion, like any other <code class="highlighter-rouge">Assertion</code> implementations, may be 
 released together with the <code class="highlighter-rouge">Fraction</code> interface, so that developers who extend the solution by providing new 
 <code class="highlighter-rouge">Fraction</code> implementations may reuse its assertions for testing their own stuff.</p>
   </li>

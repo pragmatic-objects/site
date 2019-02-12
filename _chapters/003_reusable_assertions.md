@@ -125,12 +125,12 @@ interface Assertion {
 Then, lets encapsulate repeating assertions to its implementation:
 
 ```java
-class AssertFractionHasCertainNumenatorAndDenominator implements Assertion {
+class AssertFractionHasCertainNumeratorAndDenominator implements Assertion {
     private final Fraction fraction;
     private int expectedNumerator;
     private int expectedDenominator;
     
-    public AssertFractionHasCertainNumenatorAndDenominator(Fraction fraction) {
+    public AssertFractionHasCertainNumeratorAndDenominator(Fraction fraction) {
         this.fraction = fraction;
     }
     
@@ -149,7 +149,7 @@ class FractionTest extends TestsSuite {
         super(
             new TestCase(
                 "assert that 1/2 + 1/3 = 5/6",
-                new AssertFractionHasCertainNumenatorAndDenominator(
+                new AssertFractionHasCertainNumeratorAndDenominator(
                     new FracSum(
                         new FracStatic(1, 2),
                         new FracStatic(2, 3)
@@ -159,7 +159,7 @@ class FractionTest extends TestsSuite {
             ),
             new TestCase(
                 "assert that \"1/2\" string is parsed to a 1/2 fraction",
-                new AssertFractionHasCertainNumenatorAndDenominator(
+                new AssertFractionHasCertainNumeratorAndDenominator(
                     new FracFromString("1/2"),
                     1, 2
                 )
@@ -181,15 +181,15 @@ Isn't it just overcomplicating simple concepts?
 
 I see the following benefits:
 
-- Once implemented, `AssertFractionHasCertainNumenatorAndDenominator` assertion can be used on *any* possible 
+- Once implemented, `AssertFractionHasCertainNumeratorAndDenominator` assertion can be used on *any* possible 
 [subtype](https://en.wikipedia.org/wiki/Liskov_substitution_principle) of `Fraction`.
 
 - For any highly-segregated interface with clear domain-related semantics (like `Fraction`) the number of 
-needed assertions is usually limited. For fraction, single `AssertFractionHasCertainNumenatorAndDenominator` would 
+needed assertions is usually limited. For fraction, single `AssertFractionHasCertainNumeratorAndDenominator` would 
 cover the majority of possible test scenarios with fractions. When we test a new `Fraction` implementation, first thing
 we would want to test is that fraction under test has certain numerator and denominator.
 
-- `AssertFractionHasCertainNumenatorAndDenominator` assertion, like any other `Assertion` implementations, may be 
+- `AssertFractionHasCertainNumeratorAndDenominator` assertion, like any other `Assertion` implementations, may be 
 released together with the `Fraction` interface, so that developers who extend the solution by providing new 
 `Fraction` implementations may reuse its assertions for testing their own stuff.
 
