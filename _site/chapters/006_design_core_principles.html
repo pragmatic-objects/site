@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>The core principles of software design</title>
+    <meta name="description"
+          content="The shortest self-sufficient set of principles for making software design maintainble.">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>The core principles of software design</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'The core principles of software design'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>What makes software design <a href="https://en.wikipedia.org/wiki/Maintainability">maintainable</a>? Nicely expressed logic by means of powerful language and 
+its <a href="https://en.wikipedia.org/wiki/Syntactic_sugar">syntactic sugar</a>? 
+Absence of boilerplate code? Tight <a href="https://en.wikipedia.org/wiki/Cohesion_(computer_science)">cohesion</a> and loose <a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)">coupling</a>?
+Using <a href="https://en.wikipedia.org/wiki/Software_design_pattern">design patterns</a> and avoiding <a href="https://en.wikipedia.org/wiki/Anti-pattern">antipatterns</a>?
+<a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html#1-he-exists-in-real-life">Speaking names</a> for classes, methods and variables?</p>
+
+<p>For me, none of above anymore. Well, at least not directly. They are useful and handy from time to time, but they guarantee nothing, and are hard for objective reasoning.
+Deeply sugarized languages tend to be more complex for reading and studying and <a href="https://www.yegor256.com/2017/04/11/flexibility-equates-lower-quality.html">harder</a> for enforcing quality standards.
+Excessive use of design patterns often leads to overdesign. There are <a href="http://www.math.md/files/csjm/v25-n1/v25-n1-(pp44-74).pdf">decades</a> of metrics for estimating cohesion
+and coupling and none of them are accurate enough to make desicions. And certain “speaking” names could mean completely different things within different contexts.</p>
+
+<p>We all feel the pain when the code we maintain is a mess, but what means “a mess” we usually can’t formulate presicely.</p>
+
+<p>I found for myself the best, smallest, simplest and the most universal criteria of maintainability. And it works especially flawless with Elegant Objects.</p>
+
+<h2 id="notice">Notice</h2>
+
+<p>Once upon a time Robert C. Martin introduced a fascinating set of <a href="http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod">principles</a>
+and <a href="https://linux.ime.usp.br/~joaomm/mac499/arquivos/referencias/oodmetrics.pdf">metrics</a> for object oriented design. I recommend you to read them.</p>
+
+<p>The principles I will present here are refined and generalized version of principles, presented by Uncle Bob.</p>
+
+<h2 id="theory">Theory</h2>
+
+<p>The core principles I outlined are the following:</p>
+
+<ol>
+  <li>Each self-sufficient reusable component of some software should be either abstract or concrete.</li>
+  <li>Abstract components are good at defining a purpose of application and intentions of its parts, while concrete components are good for implementing end-user software requirements.</li>
+  <li>Abstract components should be stable, while concrete components should be easy to change.</li>
+  <li>Abstract components should never depend on concrete components.</li>
+</ol>
+
+<p>Actually — that’s all one needs to know about design. In order to apply these principles, the only thing remains is to decide how abstract or concrete is each component of your system, and constrain it accordingly.
+Everything else — patterns, antipatterns, paradigms and misconceptions, language constructs and frameworks features — either derive this core idea
+and help developers to follow it, or lead to troubles, especially when misunderstood.</p>
+
+<p>The principles I outlined above are applicable on any system, consisting of reusable self-sufficient pieces of code. These pieces could be anything — classes/interfaces, procedures, functions,
+libraries, modules, or even processes and microservices: if they can be reused in several places of system, they are the source of same design troubles. Reuse is impossible without coupling, and
+coupling always makes system maintenance harder to some degree. By following these four principles, you can keep impact on maintenance from coupling at a minimum.</p>
+
+<h3 id="how-these-principles-are-applicable-to-elegant-objects">How these principles are applicable to Elegant Objects?</h3>
+
+<p>Since this blog is about Elegant Objects, lets see how these principles are applied there.</p>
+
+<p>In “Elegant Objects” way of OOP, there are two kinds of self-sufficient components (interfaces and classes) and two kinds of dependencies between them (subtyping and reference).
+Which of the components are abstract and which — concrete?</p>
+
+<p>Interfaces are definitely abstractions. They were initially created for being reused, extended and depend on. Which makes them good for describing the purpose of
+application and its components.</p>
+
+<p>There is a bit more complicated story with classes though. They can be abstract or concrete, depending on situation.</p>
+
+<p>Majority of elegantly-designed classes are abstract components. The most representative example are decorator classes:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">TrimmedText</span> <span class="kd">implements</span> <span class="n">Text</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Text</span> <span class="n">origin</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">TrimmedText</span><span class="o">(</span><span class="kd">final</span> <span class="n">Text</span> <span class="n">text</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">origin</span> <span class="o">=</span> <span class="n">text</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">read</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">origin</span><span class="o">.</span><span class="na">read</span><span class="o">().</span><span class="na">trim</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>For abstract components, the number of dependencies on other things should be constrained and close to zero, to keep them stable. <code class="highlighter-rouge">TrimmedText</code> from example above has dependency only on <code class="highlighter-rouge">Text</code> interface.
+Usually, each abstract component is bound to certain fixed intention, or reason to exist (<code class="highlighter-rouge">TrimmedText</code>’s intention is to trim the text).
+Since the intention is fixed, and since there is no dependencies on volatile things, they stay stable and are safe for reuse.</p>
+
+<p>Concrete components are the other story. Examples of such classes are entry points with <code class="highlighter-rouge">main</code> method (like this class from 
+<a href="https://github.com/yegor256/takes/blob/4c4ce5d834790fd275974969d21f3d7f8dbdc933/src/it/file-manager/src/main/java/org/takes/it/fm/App.java">Takes</a>), 
+and classes which make large object compositions (like this class from <a href="https://github.com/yegor256/rultor/blob/1.34/src/main/java/com/rultor/agents/Agents.java">Rultor</a>).
+They are typically full of dependencies, but almost never reused.</p>
+
+<p>Concrete classes are good for collecting things together in one working application. Composing different intentions, each of them fulfill
+certain functional requirement. Since dependencies on concrete classes are constrained, they can be changed without fear that changes will break software
+in unusual places. Which is virtue for them, because functional requirements are usually the most volatile thing in software development.</p>
+
+<h2 id="practice">Practice</h2>
+
+<p>Meet <a href="https://github.com/skapral/puzzlerbot">Puzzlerbot</a>. Puzzlerbot is a small tool of mine, which provides alternative means for making 
+<a href="https://www.yegor256.com/2010/03/04/pdd.html">puzzle tasks</a>. Instead of looking for puzzles in code comments, Puzzlerbot seeks them in comments to closed issues and pull requests.
+Below, I’ll describe step by step how all these principles were applied for Puzzlerbot development.</p>
+
+<h3 id="purpose">Purpose</h3>
+
+<p>First — we need a purpose. Note that purpose is something very different from software requirements. While requirements are changing every day with business demands,
+purpose usually stays put. <a href="https://en.wikipedia.org/wiki/AAA_(video_game_industry)">AAA</a> videogame would never turn into banking system. IoT-based solution wouldn’t mutate to online shop.
+Requirements for them may change drastically during their development lifetime, but not the purpose.
+Attempt to change a purpose of some living application usually causes unreasonably huge and severe impacts and costs. So huge that it is easier to just write it from scratch.</p>
+
+<p>In other words, purpose of the application is like a <a href="https://en.wikipedia.org/wiki/Log_line">log line</a> to a film,
+while software requirements are like plot. In case of Puzzlerbot, the purpose is:</p>
+
+<ul>
+  <li>to find puzzles in certain places</li>
+  <li>parse the puzzles</li>
+  <li>store the puzzles as issues to some issue tracker</li>
+</ul>
+
+<p>Note that the purpose is never bound to details. Simply because details are a source of volatility. I don’t claim yet what exactly are these
+places and issue trackers Puzzlerbot must deal with. It’s irrelevant yet.</p>
+
+<h3 id="abstractions">Abstractions</h3>
+
+<p>Purpose is defined. Great. Now we can outline some abstractions.</p>
+
+<p>In order to find puzzles in certain places like GitHub issues or pull requests, we need an abstraction for these certain places.
+In my case, it is <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c2591bfb931bbbe30967c1c3118add7c09/puzzler-core/src/main/java/com/github/skapral/puzzler/core/PuzzleSource.java"><code class="highlighter-rouge">PuzzleSource</code></a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">PuzzleSource</span> <span class="o">{</span>
+    <span class="n">List</span><span class="o">&lt;</span><span class="n">Puzzle</span><span class="o">&gt;</span> <span class="nf">puzzles</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>In order to parse puzzle contents, we need some abstraction for representing the puzzle.
+In my case, it is <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/puzzler-core/src/main/java/com/github/skapral/puzzler/core/Puzzle.java"><code class="highlighter-rouge">Puzzle</code></a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">Puzzle</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">title</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">description</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>In order to store the puzzle as issue to some issue tracker, I need an abstraction for that issue tracker.
+In my case, it is <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/puzzler-core/src/main/java/com/github/skapral/puzzler/core/IssueTracker.java"><code class="highlighter-rouge">IssueTracker</code></a>:</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">IssueTracker</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">persistPuzzle</span><span class="o">(</span><span class="n">Puzzle</span> <span class="n">puzzle</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>And in order to make all these things work together,
+I need a <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/puzzler-core/src/main/java/com/github/skapral/puzzler/core/operation/OpPersistAllPuzzles.java">class</a> that will do it for me:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * Operation that persists all puzzles from the provided source to the
+ * issue tracker.
+ */</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OpPersistAllPuzzles</span> <span class="kd">implements</span> <span class="n">Operation</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">PuzzleSource</span> <span class="n">puzzleSource</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">IssueTracker</span> <span class="n">issueTracker</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">OpPersistAllPuzzles</span><span class="o">(</span><span class="n">PuzzleSource</span> <span class="n">puzzleSource</span><span class="o">,</span> <span class="n">IssueTracker</span> <span class="n">issueTracker</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">puzzleSource</span> <span class="o">=</span> <span class="n">puzzleSource</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">issueTracker</span> <span class="o">=</span> <span class="n">issueTracker</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">execute</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">puzzleSource</span><span class="o">.</span><span class="na">puzzles</span><span class="o">().</span><span class="na">forEach</span><span class="o">(</span><span class="nl">issueTracker:</span><span class="o">:</span><span class="n">persistPuzzle</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Despite the fact that <code class="highlighter-rouge">OpPersistAllPuzzles</code> is a non-abstract class, from design point of view it is an abstract component, because it is stable,
+bound to purpose of Puzzlerbot and doesn’t depend on any implementation details.</p>
+
+<p>Note the core characteristics of abstractions. First of all, each of them is stable. It is hard to imagine requirement change, that would impact any of these components.
+Also, Since they are stable, I can safely rely on them. As well as I can imagine infinite number of different puzzle sources and issue trackers to support in future, 
+I can derive infinite number of classes from <code class="highlighter-rouge">Puzzle</code>, <code class="highlighter-rouge">IssueTracker</code> or <code class="highlighter-rouge">PuzzleSource</code> without fear that abstractions will change at some time.
+This brings great potential for extending Puzzlerbot’s capabilities.</p>
+
+<h3 id="from-abstractions-to-concrete-details">From abstractions to concrete details</h3>
+
+<p>Core abstractions are defined. Splendid. Now I can analyse requirements step-by-step and make several implementations.</p>
+
+<p>Currently, Puzzlerbot parses closed Github issues and pull requests 
+(which gives us <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/puzzler-github/src/main/java/com/github/skapral/puzzler/github/source/PsrcFromGithubEvent.java"><code class="highlighter-rouge">PsrcFromGithubEvent</code></a>)
+and stores issues back to GitHub
+(<a href="https://github.com/skapral/puzzlerbot/blob/master/puzzler-github/src/main/java/com/github/skapral/puzzler/github/itracker/ItGithubIssues.java"><code class="highlighter-rouge">ItGithubIssues</code></a>).
+Also, comment with puzzle is supposed to have certain format (see <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/README.md#how-to-create-a-puzzle">README.md</a>
+and <a href="https://github.com/skapral/puzzlerbot/blob/433dd1c259/puzzler-core/src/main/java/com/github/skapral/puzzler/core/puzzle/PzlUsingThreeParsText.java"><code class="highlighter-rouge">PzlUsingThreeParsText</code></a>).</p>
+
+<p>All components I mentioned above are abstract. Each of them is bound to specific intention: <code class="highlighter-rouge">PsrcFromGithubEvent</code> — to get
+list of puzzles from incoming <a href="https://developer.github.com/webhooks/">GitHub webhook</a> event, <code class="highlighter-rouge">ItGithubIssues</code> — to persist puzzles to GitHub issues, <code class="highlighter-rouge">PzlUsingThreeParsText</code> — to parse
+puzzle’s title and description from plain text. Since the intentions are stable, the classes are stable too — one can safely reuse them wherever they are needed.</p>
+
+<p>Finally, in the end, I defined HTTP endpoint for catching GitHub issues/PRs close events
+(<a href="https://github.com/skapral/puzzlerbot/blob/master/puzzler-web/src/main/java/com/github/skapral/puzzler/web/jersey/GithubHookEndpoint.java"><code class="highlighter-rouge">GithubHookEndpoint</code></a>)
+and composed everything together in it.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Path</span><span class="o">(</span><span class="s">"github"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">GithubHookEndpoint</span> <span class="o">{</span>
+    <span class="nd">@POST</span>
+    <span class="nd">@Consumes</span><span class="o">(</span><span class="s">"application/json"</span><span class="o">)</span>
+    <span class="nd">@Produces</span><span class="o">(</span><span class="s">"application/json"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">Response</span> <span class="nf">githubHook</span><span class="o">(</span><span class="nd">@HeaderParam</span><span class="o">(</span><span class="s">"X-GitHub-Event"</span><span class="o">)</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">eventType</span><span class="o">,</span> <span class="nd">@HeaderParam</span><span class="o">(</span><span class="s">"X-Hub-Signature"</span><span class="o">)</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">eventSignature</span><span class="o">,</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">event</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="k">new</span> <span class="nf">OpValidatingGithubEventSignature</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">Cp_GITHUB_HOOK_SECRET</span><span class="o">(),</span>
+            <span class="n">event</span><span class="o">,</span>
+            <span class="n">Objects</span><span class="o">.</span><span class="na">isNull</span><span class="o">(</span><span class="n">eventSignature</span><span class="o">)</span> <span class="o">?</span> <span class="s">""</span> <span class="o">:</span> <span class="n">eventSignature</span><span class="o">,</span>
+            <span class="k">new</span> <span class="nf">OpIgnoringUnprivildgedEventSender</span><span class="o">(</span>
+                <span class="n">event</span><span class="o">,</span>
+                <span class="k">new</span> <span class="nf">OpPersistAllPuzzles</span><span class="o">(</span>
+                    <span class="k">new</span> <span class="nf">PsrcFromGithubEvent</span><span class="o">(</span>
+                        <span class="n">eventType</span><span class="o">,</span>
+                        <span class="n">event</span><span class="o">,</span>
+                        <span class="k">new</span> <span class="nf">Cp_GITHUB_AUTH_TOKEN</span><span class="o">()</span>
+                    <span class="o">),</span>
+                    <span class="k">new</span> <span class="nf">ItGithubIssues</span><span class="o">(</span>
+                        <span class="k">new</span> <span class="nf">GhapiProduction</span><span class="o">(</span>
+                            <span class="k">new</span> <span class="nf">Cp_GITHUB_AUTH_TOKEN</span><span class="o">()</span>
+                        <span class="o">),</span>
+                        <span class="k">new</span> <span class="nf">GprjFromGithubEvent</span><span class="o">(</span>
+                            <span class="n">event</span>
+                        <span class="o">)</span>
+                    <span class="o">)</span>
+                <span class="o">)</span>
+            <span class="o">),</span>
+            <span class="nl">AuthenticationException:</span><span class="o">:</span><span class="k">new</span>
+        <span class="o">).</span><span class="na">execute</span><span class="o">();</span>
+        <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="na">ok</span><span class="o">(</span><span class="s">"{}"</span><span class="o">).</span><span class="na">build</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">GithubHookEndpoint</code> is the example of concrete component in Puzzlerbot. It is <em>never</em> reused, and is never <em>supposed</em> to be reused. At the same time, since it is not a subject for reuse,
+I am free to depend on <em>anything</em> there. I can even do one step out of Elegant Objects paradigm and use <a href="https://www.yegor256.com/2016/04/12/java-annotations-are-evil.html">annotation-based</a>
+JAX-RS framework. Who cares that the endpoint is deeply and implicitly bound to JAX-RS by annotations, if <a href="https://jersey.github.io/">Jersey</a> framework is 
+the only place which is supposed to use it?</p>
+
+<p>Also, <code class="highlighter-rouge">GithubHookEndpoint</code> is extremely volatile, which is a good thing for concrete component. No matter how handling of GitHub events would change in Puzzlerbot, I can make changes in
+<code class="highlighter-rouge">GithubHookEndpoint</code> easily, and not afraid of breaking other components. Simply because there are no other components to break. There are no depenedencies on it.</p>
+
+<h3 id="what-practical-benefits-these-principles-give">What practical benefits these principles give?</h3>
+
+<p>Transparency.</p>
+
+<p>First of all, by following these principles, for each incoming change request it is clear from the start how much it costs. If change request
+impacts some abstraction, the cost will be as large, as much there are dependencies on that abstraction. Usually, it is not hard to check it on earliest of development stages.
+And since abstractions are bound to the purpose of application, it is usually easier to explain this costs to stakeholders, who don’t like the word “refactoring”.</p>
+
+<p>Second, it is easier to work in parallel on code organized in such way. The chance that by working on different features developers will impact same components
+(causing merge conflicts) is close to zero. For example, when I <a href="https://github.com/skapral/puzzlerbot/pull/74">added</a> Puzzlerbot support for GitLab,
+I did almost none changes in already written code.</p>
+
+<p>Third, the code readability increases drastically. Not only I <a href="https://www.yegor256.com/2015/03/09/objects-end-with-er.html">don’t use class names which ends on -ER</a>,
+I never feel a need to do so. Because each and every class is bound either to application’s purpose, or intention, forulated in human language.
+From the first glance on the class name it is clear what the class is supposed to do.</p>
+
+<p>Forth, it is self-protecting. Once I realise that I am about to make changes in some component that was supposed to stay abstract, it’s a clear indicator for me that I 
+missed something in the beginning, when I outlined abstraction in first place. Good reason to make some root-cause analysis and refactoring.</p>
+
+<p>Fifth, it is easy! Look — just four straight principles instead of great load of patterns, paradigms, approaches, options, capabilities, frameworks and books about them!
+You can just throw away your heavy annotation-based framework or container which gives you only promises of clear design, and do clear design yourself!
+You can throw out of head all nuances of how it’s internal black magic works and use free brain resources for studying domain area of your application, 
+in order to better understand the needs of your users and stakeholders. Knowledge of domain area is much more helpful for building adequate abstractions than knowledge of how your
+favorite DI container processes <code class="highlighter-rouge">@Inject</code> annotation.</p>
+
+<h3 id="to-sum-up">To sum up</h3>
+
+<p>Abstract components are components for being reused, while concrete components are components for reusing other components.</p>
+
+<p>Abstract components must be stable, while concrete components must be volatile.</p>
+
+<p>Abstract components define purpose, while concrete components implement requirements.</p>
+
+<p>These two categories should never be mixed. Every self-sufficient piece of code must be either abstract, or concrete.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>

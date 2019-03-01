@@ -4,7 +4,7 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2019-01-31T02:17:52Z</updated>
+  <updated>2019-03-01T21:22:17Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -57,6 +57,14 @@
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/005_implementation_inheritance_paranoia.html" />
     <updated>2019-01-30T00:00:00+03:00</updated>
+  </entry>
+  
+  <entry>
+    <title>The core principles of software design</title>
+    <id>https://pragmaticobjects.com/chapters/006_design_core_principles</id>
+    <link rel="alternate" type="text/html"
+          href="https://pragmaticobjects.com/chapters/006_design_core_principles.html" />
+    <updated>2019-02-27T00:00:00+03:00</updated>
   </entry>
   
 </feed>
