@@ -25,7 +25,9 @@ I found for myself the best, smallest, simplest and the most universal criteria 
 Once upon a time Robert C. Martin introduced a fascinating set of [principles](http://butunclebob.com/ArticleS.UncleBob.PrinciplesOfOod)
 and [metrics](https://linux.ime.usp.br/~joaomm/mac499/arquivos/referencias/oodmetrics.pdf) for object oriented design. I recommend you to read them.
 
-The principles I will present here are refined and generalized version of principles, presented by Uncle Bob.
+The principles I will present here are refined and generalized version of principles, presented by Uncle Bob. Four principles, presented below, are aggregated version
+of stable dependencies, stable abstractions, dependencies inversion principles and definition of main sequence zone, 
+reformulated in a way to be easily applicable for reasoning on any piece of code, that may be reused and depend on something.
 
 ## Theory
 
@@ -248,7 +250,7 @@ Second, it is easier to work in parallel on code organized in such way. The chan
 I did almost none changes in already written code.
 
 Third, the code readability increases drastically. Not only I [don't use class names which ends on -ER](https://www.yegor256.com/2015/03/09/objects-end-with-er.html),
-I never feel a need to do so. Because each and every class is bound either to application's purpose, or intention, forulated in human language.
+I never feel a need to do so. Because each and every class is bound either to application's purpose, or intention, formulated in human language.
 From the first glance on the class name it is clear what the class is supposed to do.
 
 Forth, it is self-protecting. Once I realise that I am about to make changes in some component that was supposed to stay abstract, it's a clear indicator for me that I 
