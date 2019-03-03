@@ -168,7 +168,7 @@ class FracOneHalf extends FracStatic {
 
 // another alias
 class FracOneThird extends FracStatic {
-    public FracOneHalf() {
+    public FracOneThird() {
         super(1, 3);
     }
 }
