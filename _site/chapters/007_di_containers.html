@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>No DI containers, please</title>
+    <meta name="description"
+          content="Adequate SOLID design doesn't need any DI containers">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>No DI containers, please</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'No DI containers, please'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>Once ago in this <a href="https://www.yegor256.com/2014/10/03/di-containers-are-evil.html">post</a>, Yegor Bugayenko named DI 
+containers the “code polluters”. It was quite argueable and contradictory claim. The first time I read it, I 
+was not convinced by provided argumentation. However, later I came to the same conclusion. If you want your application 
+design to be maintainable, DI containers is the least thing which will help you with that. In best case, it will be 
+just useless. In worst case, as we will see, it will even harm your design. In this post, I will provide my set of 
+arguments.</p>
+
+<h2 id="disclaimer">Disclaimer</h2>
+
+<p>I will take <a href="https://spring.io/projects/spring-framework">Spring Framework</a> as an example, 
+since it is the most known and popular DI framework in Java ecosystem nowadays,
+but each and every conclusion I will make one can interpolate on the other DI containers.</p>
+
+<p>And yes, I know that Spring Framework is much more than just a DI container — it is sort of an integration 
+platform nowadays. In this post, I will intentionally omit its capabilities which are not related to
+dependency injection.</p>
+
+<p>Since even as DI container Spring provides lots of capabilities for making injections in different ways, I can’t 
+cover all of them in one post — it will be too huge. For illustrating my argumentation, I took two most known ways: 
+annotation-based injections and Spring XML. Other capabilities of Spring and other DI containers can be mapped on 
+the provided argumentation quite easily. If I forget something, don’t hesitate to remind me in comments.</p>
+
+<h2 id="lets-start">Lets start</h2>
+
+<p>First, all DI capabilities of containers can be divided into two groups:</p>
+
+<ul>
+  <li>
+    <p>Internal configuration: when DI container infers information about bean’s dependencies from the bean itself, based on 
+annotations, types, names and other metainformation stored inside bean. Examples are injections using <code class="highlighter-rouge">@Autowired</code> 
+and <code class="highlighter-rouge">@Inject</code> annotations.</p>
+  </li>
+  <li>
+    <p>External configuration: when information of the bean’s dependencies is defined in external configuration file or 
+described by means of some DSL, provided by container. Example is Spring XML.</p>
+  </li>
+</ul>
+
+<h2 id="thesis-1-internal-configuration-is-toxic">Thesis 1: Internal configuration is toxic</h2>
+
+<p>So, imagine you have some annotated bean:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span> <span class="n">BeanB</span> <span class="n">bean</span><span class="o">;</span>
+    
+    <span class="c1">/// Methods go here</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>That’s how typically we inject one thing to another. Simple — <code class="highlighter-rouge">BeanB</code> injected in <code class="highlighter-rouge">BeanA</code>. But what exactly is 
+<code class="highlighter-rouge">BeanB</code>? What if it is an interface or abstract class, which has several implementations? Which one will be injected?</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanB1</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanB2</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span> <span class="n">BeanB</span> <span class="n">bean</span><span class="o">;</span> <span class="c1">// BeanB1 or BeanB2? </span>
+    
+    <span class="c1">/// Methods go here</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Lets <a href="https://www.baeldung.com/spring-autowire">search</a> for the answer:</p>
+
+<blockquote>
+  <p>By default, Spring resolves <code class="highlighter-rouge">@Autowired</code> entries by type.
+If more than one beans of the same type are available in the container, the framework will throw a fatal exception 
+indicating that more than one bean is available for autowiring.</p>
+</blockquote>
+
+<p>Nice. So — how should we solve it? Same source provides us with several hints:</p>
+
+<ul>
+  <li>We can annotate autowired injection with <code class="highlighter-rouge">@Qualifier</code>, saying which bean to inject there</li>
+  <li>Spring can use the injected field name as default qualifier</li>
+</ul>
+
+<p>There are of course many other ways Spring provides to work this problem around, but let’s stop on qualifiers. How 
+can we fix our injection?</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">BeanB</span> <span class="o">{}</span>
+
+<span class="nd">@Component</span><span class="o">(</span><span class="s">"theBean"</span><span class="o">)</span>
+<span class="kd">class</span> <span class="nc">BeanB1</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanB2</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span> <span class="nd">@Qualifier</span><span class="o">(</span><span class="s">"theBean"</span><span class="o">)</span> <span class="n">BeanB</span> <span class="n">bean</span><span class="o">;</span> <span class="c1">// BeanB1! </span>
+    
+    <span class="c1">/// Methods go here</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Now, let’s look at the code from design point of view. Lets assume that types <code class="highlighter-rouge">BeanB1</code> and <code class="highlighter-rouge">BeanB2</code> are not 
+only extending <code class="highlighter-rouge">BeanB</code>, but are  designed to be the <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">subtypes</a> of it. From Liskov 
+Substitution principle definition, it’d mean that <code class="highlighter-rouge">BeanA</code> instances are equally correct with injected <code class="highlighter-rouge">BeanB1</code> or 
+<code class="highlighter-rouge">BeanB2</code>.</p>
+
+<p>Yet we hardcoded <code class="highlighter-rouge">BeanB1</code> to <code class="highlighter-rouge">BeanA</code>. Not directly — by qualifier. But still! What if in one 
+place of the system we’ll need <code class="highlighter-rouge">BeanA</code> composed with <code class="highlighter-rouge">BeanB1</code> and in another place—<code class="highlighter-rouge">BeanA</code> composed with <code class="highlighter-rouge">BeanB2</code>?
+How should I annotate <code class="highlighter-rouge">BeanA</code> to achieve that? If I had instantiated <code class="highlighter-rouge">BeanA</code> by myself, I could have easily reused it
+in as many places as I need. With all these qualifiers and container in front of me I can’t easily reuse <code class="highlighter-rouge">BeanA</code> 
+anymore!</p>
+
+<p>The fact that the dependency-related information is stored inside the bean is actually a huge problem, because it 
+causes us to lose SOLID principles one by one. You cannot use <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a> on <code class="highlighter-rouge">BeanA</code> anymore - 
+all information about which <code class="highlighter-rouge">BeanB</code> to inject is stored inside <code class="highlighter-rouge">BeanA</code>.
+You can define the base type of the injected attribute (like in my example) but it won’t help you. Spring will either 
+implicitly couple it to certain implementation (the one which Spring finds suitable inside its context according to 
+resolution strategy), or fail until you couple it by yourself using qualifiers, exact attribute type, name, or other 
+means…</p>
+
+<p>Since you are loosing flexibility in substituting subtypes, you have no reason to subtype per-se — good bye <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">OCP</a>.
+You’ll find much easier to make somewhat like this instead:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
+    <span class="nd">@Autowired</span> <span class="n">BeanB1</span> <span class="n">bean</span><span class="o">;</span> <span class="c1">// I want BeanB1 here so I will explicitly couple it here</span>
+    
+    <span class="c1">/// Methods go here</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>Why having all this hierarchy of <code class="highlighter-rouge">BeanB</code> if you can’t substitute it easily? Let’s just wire the beans directly, right?</p>
+
+<p>Deadly wrong! By doing this, you are losing probably the most important principle from maintainability perspective — 
+<a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">DIP</a>. Bitter truth is that by autowiring beans in the
+way above, you make one concrete component (<code class="highlighter-rouge">BeanA</code>) depend on another (<code class="highlighter-rouge">BeanB1</code>), while it should have depended on 
+abstraction (<code class="highlighter-rouge">BeanB</code>).</p>
+
+<p>In the end, the whole solution, built on <code class="highlighter-rouge">@Autowired</code> dependencies, is usually nothing more than just a parody on 
+procedural programming. Beans there are just tightly-coupled ever-growing ever-changing services (storages for 
+procedures), with injections as an ugly alternative for C-like <code class="highlighter-rouge">#include</code> directive.</p>
+
+<h2 id="thesis-2-external-configuration-is-useless">Thesis 2: External configuration is useless</h2>
+
+<p>So, placing configuration inside beans is evil? Okay, but we have also the alternative — we can use Spring XML and 
+keep our beans clean:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanB1</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanB2</span> <span class="kd">extends</span> <span class="n">BeanB</span> <span class="o">{}</span>
+
+<span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">BeanB</span> <span class="n">bean</span><span class="o">;</span>
+    
+    <span class="kd">public</span> <span class="nf">BeanA</span><span class="o">(</span><span class="n">BeanB</span> <span class="n">dependency</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">bean</span> <span class="o">=</span> <span class="n">dependency</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="c1">/// Methods go here</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;beans&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">"beanB1"</span> <span class="na">class=</span><span class="s">"BeanB1"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">"beanB2"</span> <span class="na">class=</span><span class="s">"BeanB2"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">"beanA1"</span> <span class="na">class=</span><span class="s">"BeanA"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;constructor-arg</span> <span class="na">ref=</span><span class="s">"beanB1"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/bean&gt;</span>
+    <span class="nt">&lt;bean</span> <span class="na">id=</span><span class="s">"beanA2"</span> <span class="na">class=</span><span class="s">"BeanA"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;constructor-arg</span> <span class="na">ref=</span><span class="s">"beanB2"</span><span class="nt">/&gt;</span>
+    <span class="nt">&lt;/bean&gt;</span>
+<span class="nt">&lt;/beans&gt;</span>
+</code></pre></div></div>
+
+<p>Our beans are clean from dependency-related information now. Container needs no more reasoning about which dependency
+to inject based on what is inside in <code class="highlighter-rouge">BeanA</code> — all the information is now defined in cosy external XML configuration.</p>
+
+<p>Yet this XML-based configuration is not very popular nowadays. People in majority prefer more compact 
+and nasty annotation-based way we discussed already. And it’s hard to blame them for that — these XML descriptors 
+typically grow very huge in very short time, they can be too verbose and hard to understand and maintain.</p>
+
+<p>My question is — if it is so hard to keep and maintain these huge XML descriptors, what do we really need them for? 
+All they describe is just how the objects should be instantiated. How Spring XML is better then just plain Java code?</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">BeanA</span> <span class="n">beanA1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BeanA</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">BeanB1</span><span class="o">()</span>
+<span class="o">);</span>
+<span class="n">BeanA</span> <span class="n">beanA2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BeanA</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">BeanB2</span><span class="o">()</span>
+<span class="o">);</span>
+</code></pre></div></div>
+
+<p>Collecting a single application from reusable objects is just a question of ordinary object composition — why we 
+need a separate complex framework like DI container with some DSL for such simple 
+and straight-forward matter? Why forcing developers to study unintuitive and ambiguous rules DI containers are 
+working by, when they can achieve the same by plain Java and object composition, and it will be much easier to read, 
+understand, debug and test? I can’t get it, honestly.</p>
+
+<h2 id="okay-what-are-the-alternatives">Okay, what are the alternatives?</h2>
+
+<p>Alternatives to what? DI containers? Well, nothing. No DI containers. Just <a href="006_design_core_principles.md">healthy object-oriented 
+SOLID</a> design would be okay. I said “object-oriented”? Well, funny, but it seems that functional paradigm never 
+suffered from such “DI container” <a href="https://stackoverflow.com/a/14329487/3223300">misconcept</a>. Maybe it’s time to
+clean OOP from it either?</p>
+
+<p>Someone may ask here: “Maybe the concept is okay, but it’s implementations that are ugly? Maybe we need to make some 
+brand new DI container, or use CDI/Dagger/Guice instead?” I tend to disagree with that. The reason is — whatever 
+implementation we take or imagine in place of <code class="highlighter-rouge">@Autowired</code> or XML descriptor, it will still need to gather information 
+about injections from somewhere — either from inside or outside the bean. I personally see no third way.
+Placing dependency management on some container’s shoulders will inevitably lead to repeating the negative aspects 
+outlined above.</p>
+
+<p>So, my motto is: adequate software design doesn’t need DI containers.</p>
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
