@@ -200,7 +200,7 @@ understand, debug and test? I can't get it, honestly.
 ## Okay, what are the alternatives?
 
 Alternatives to what? DI containers? Well, nothing. No DI containers. Just [healthy object-oriented 
-SOLID](006_design_core_principles.md) design would be okay. I said "object-oriented"? Well, funny, but it seems that functional paradigm never 
+SOLID](006_design_core_principles.html) design would be okay. I said "object-oriented"? Well, funny, but it seems that functional paradigm never 
 suffered from such "DI container" [misconcept](https://stackoverflow.com/a/14329487/3223300). Maybe it's time to
 clean OOP from it either?
 
