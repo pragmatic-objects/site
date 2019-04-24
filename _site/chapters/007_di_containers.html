@@ -140,10 +140,11 @@ resolution strategy), or fail until you couple it by yourself using qualifiers, 
 means…</p>
 
 <p>Since you are loosing flexibility in substituting subtypes, you have no reason to subtype per-se — good bye <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">OCP</a>.
-You’ll find much easier to make somewhat like this instead:</p>
+Since you have no more benefit from outlining interfaces, you won’t design them as stable abstractions and points of extension.
+In majority of cases you could just omit them. You’ll find much easier to make somewhat like this instead:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">BeanA</span> <span class="o">{</span>
-    <span class="nd">@Autowired</span> <span class="n">BeanB1</span> <span class="n">bean</span><span class="o">;</span> <span class="c1">// I want BeanB1 here so I will explicitly couple it here</span>
+    <span class="nd">@Autowired</span> <span class="n">BeanB1</span> <span class="n">bean</span><span class="o">;</span> <span class="c1">// I want BeanB1 here so I will explicitly define this</span>
     
     <span class="c1">/// Methods go here</span>
 <span class="o">}</span>
