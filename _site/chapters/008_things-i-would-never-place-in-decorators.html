@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Four things I would never place into decorators</title>
+    <meta name="description"
+          content="Not every decorator is equally helpful">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Four things I would never place into decorators</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Four things I would never place into decorators'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>For everyone who is familiar with Elegant Objects, it’s not a secret that Yegor Bugayenko loves decorators. There are decades of posts about different ways of decorating different stuff.
+It might feel like decorators are a universal pattern for everything in Elegant Objects. But in my practice I came to conclusion that certain logic should never be placed in decorators, no matter how
+tempting it is.</p>
+
+<h2 id="equality-logic">Equality logic</h2>
+
+<p>One of such logic I already mentioned in my post about <a href="004_object_equivalence.html">objects equality</a>. Equality logic. Sometimes it is a big temptation to place equality logic to a decorator. Like in this example:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+  <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FixedUser</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+
+  <span class="kd">public</span> <span class="nf">FixedUser</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">ComparableUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">origin</span><span class="o">;</span>
+
+  <span class="c1">// ctors</span>
+  <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">origin</span><span class="o">.</span><span class="na">name</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="nd">@Override</span>
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">equals</span><span class="o">(</span><span class="n">Object</span> <span class="n">that</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">obj</span> <span class="k">instanceof</span> <span class="n">EqUser</span><span class="o">)</span> <span class="o">{</span>
+      <span class="kd">final</span> <span class="n">User</span> <span class="n">other</span> <span class="o">=</span> <span class="o">(</span><span class="n">User</span><span class="o">)</span> <span class="n">obj</span><span class="o">;</span>
+      <span class="k">return</span> <span class="n">Objects</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">origin</span><span class="o">.</span><span class="na">name</span><span class="o">(),</span> <span class="n">that</span><span class="o">.</span><span class="na">name</span><span class="o">());</span>
+    <span class="o">}</span>
+    <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<p>The problem is: you don’t know what <code class="highlighter-rouge">User</code> instance encapsulates. If it is just a simplest implementation with fixed data inside, like <code class="highlighter-rouge">FixedUser</code>, then it is okay to pass it to <code class="highlighter-rouge">ComparableUser::equals</code>. But what if 
+there is another <code class="highlighter-rouge">User</code> implementation. Like <code class="highlighter-rouge">TwitterUser</code>, which extracts user’s name by calling Twitter API in <code class="highlighter-rouge">name()</code> method. Calling third party remote API is quite heavy operation — how would <code class="highlighter-rouge">HashMap</code> with <code class="highlighter-rouge">ComparableUser</code> key behave? Also there is no guarantee that one day <code class="highlighter-rouge">TwitterUser::name()</code> won’t return us some other name for the user and break the consistency of <code class="highlighter-rouge">equals</code> result.</p>
+
+<h2 id="caching-and-memoization">Caching and memoization</h2>
+
+<p>In my opinion, caching and memoization in Elegant objects is one of the most difficult subjects, which has not been fully revealed by Yegor in his books and blogposts. There are more caveats 
+that may seem to at first glance. In this post, I’ll concentrate on the caching decorators, introduced in <a href="https://github.com/yegor256/cactoos">Cactoos</a> framework, and described in <a href="https://www.yegor256.com/2017/10/17/lazy-loading-caching-sticky-cactoos.html">this</a> post.</p>
+
+<p>Consider <code class="highlighter-rouge">TwitterUser</code> from the previous chapter. In its <code class="highlighter-rouge">name</code> implemetation, it is calling Twitter API for getting the user’s name for some business purposes. Twitter API call is too heavy stuff to make it on every call to <code class="highlighter-rouge">name()</code>,
+and it is logical to preserve the result for certain period once it was obtained. On the first glance, it might be tempting to write <code class="highlighter-rouge">CachingUser</code> decorator for such purposes:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">CachedUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+ 
+    <span class="kd">public</span> <span class="nf">CachedUser</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">user</span> <span class="o">=</span> <span class="n">user</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">if</span><span class="o">(</span><span class="n">Objects</span><span class="o">.</span><span class="na">nonNull</span><span class="o">(</span><span class="n">name</span><span class="o">))</span> <span class="o">{</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">callTwitter</span><span class="o">()</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>I intentionally made this caching decorator thread-unsafe and <a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html">mutable</a> to keep it as simple as possible.
+Mutability and thread safety are irrelevant in this example.</p>
+
+<p>The usage of such decorator is straight-forward. Once I want to preserve results provided 
+by instance of <code class="highlighter-rouge">TwitterUser</code>, I wrap it to <code class="highlighter-rouge">CachedUser</code> and call it instead. Simple as it sounds.</p>
+
+<p>However, if we take into account the calling side, it becomes more cumbersome. Consider some imaginery <code class="highlighter-rouge">UserTransaction</code> class, 
+which encapsulates a complex set of actions based on user name to put some money on the user’s account:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">UserTransaction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Money</span> <span class="n">money</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Audit</span> <span class="n">audit</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">UserTransaction</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">,</span> <span class="n">Money</span> <span class="n">money</span><span class="o">,</span> <span class="n">Audit</span> <span class="n">audit</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">user</span> <span class="o">=</span> <span class="n">user</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">money</span> <span class="o">=</span> <span class="n">money</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">audit</span> <span class="o">=</span> <span class="n">audit</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">submit</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// 1. Finds user's banking account</span>
+        <span class="c1">// 2. Updates the money amount on it</span>
+        <span class="c1">// 3. Logs the transaction in some audit system</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>The first problem is that <code class="highlighter-rouge">UserTransaction</code> instances will work correctly only if the call to <code class="highlighter-rouge">this.user.name()</code> returns the same result within the whole <code class="highlighter-rouge">submit()</code> scope. If we cannot guarantee that, we can
+theoretically get a situation when on step 1 we get banking account by one user’s name, and on step 3 we log another user to the audit system. That’s why we can expect adequate work from these two objects:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">UserTransaction</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">FixedUser</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">)</span>
+<span class="o">);</span>
+
+<span class="k">new</span> <span class="nf">UserTransaction</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">CachedUser</span><span class="o">(</span>
+        <span class="k">new</span> <span class="nf">TwitterUser</span><span class="o">(...)</span>
+    <span class="o">)</span>
+<span class="o">);</span>
+</code></pre></div></div>
+
+<p>…but can’t expect the same from this one, while nothing prevents us from instantiating it:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">UserTransaction</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">TwitterUser</span><span class="o">(...)</span>
+<span class="o">);</span>
+</code></pre></div></div>
+
+<p>The second problem with caching decorators is the fact that all caches and memoization usually has certain scope. 
+Consider <code class="highlighter-rouge">UserTransaction</code> with cached twitter user inside. What will be if we call its <code class="highlighter-rouge">submit()</code> method ten times in a row, and somewhere in the middle user will change its name?
+In theory, we’d want to get this update in the beginning of a new <code class="highlighter-rouge">UserTransaction::submit()</code> call. Practically, the old name would stay cached until we reinstantiate the <code class="highlighter-rouge">CachedUser</code>. Not good.</p>
+
+<p>And the third problem is: nothing prevents us from instantiating this useless object, which will perform badly and obtain too much memory for nothing:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">CachedUser</span><span class="o">(</span>
+  <span class="k">new</span> <span class="nf">CachedUser</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">CachedUser</span><span class="o">(</span>
+      <span class="k">new</span> <span class="nf">FixedUser</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">)</span>
+    <span class="o">)</span>
+  <span class="o">)</span>
+<span class="o">)</span>
+</code></pre></div></div>
+
+<p>You may say that it is unrealistic and nobody would ever do it, but imagine that such composition is not located in one place, but spread among different <a href="https://www.yegor256.com/2017/01/31/decorating-envelopes.html">envelopes</a> or <a href="https://www.pragmaticobjects.com/chapters/005_implementation_inheritance_paranoia.html#aliases">aliases</a>? Such mistake would be quite hard to localize.</p>
+
+<h2 id="thread-safety">Thread safety</h2>
+
+<p>Thread safety by decorators was raised in the <a href="https://www.yegor256.com/2019/06/26/syncem.html">post</a> dedicated to SyncEm Ruby library, which was created for automatically making thread safe objects from thread unsafe ones by wrapping them by decorators. The whole idea of making thread safety by means of decorators (automatically or manually — doesn’t matter) sounds controversial to me.</p>
+
+<p>Lets imagine that we have the use case from the Yegors post. We need to count some visitors:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Visitors</span> <span class="o">{</span>
+  <span class="kt">int</span> <span class="nf">increment</span><span class="o">();</span>
+  <span class="kt">int</span> <span class="nf">get</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>We also need this counter to be thread-safe. If we made thread safe <code class="highlighter-rouge">Visitors</code> implementation from scratch — it would be pretty simple and straightforward:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">ThreadSafeVisitors</span> <span class="kd">implements</span> <span class="n">Visitors</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">AtomicInteger</span> <span class="n">integer</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">ThreadSafeVisitors</span><span class="o">(</span><span class="n">AtomicInteger</span> <span class="n">integer</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">integer</span> <span class="o">=</span> <span class="n">integer</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">increment</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">integer</span><span class="o">.</span><span class="na">incrementAndGet</span><span class="o">();</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">get</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">integer</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>But if we are assuming initially that there is thread unsafe <code class="highlighter-rouge">Visitors</code> implementation and we must implement a thread-safe decorator or it, things become more complicated. We could try making it straight:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">ThreadSafeVisitors</span> <span class="kd">implements</span> <span class="n">Visitors</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Visitors</span> <span class="n">threadUnsafeVisitors</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">ThreadSafeVisitors</span><span class="o">(</span><span class="n">Visitors</span> <span class="n">visitors</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">threadUnsafeVisitors</span> <span class="o">=</span> <span class="n">visitors</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">int</span> <span class="nf">increment</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">threadUnsafeVisitors</span><span class="o">.</span><span class="na">increment</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kd">synchronized</span> <span class="kt">int</span> <span class="nf">get</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">threadUnsafeVisitors</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>But straight way is not always the suitable one, especially when it is about thread safety. This implementation will perform much worse then the previous one, based on atomic integer, because of suboptimally-placed synchronization barriers. We could try making thread safe decorator by means of some reentrant locks, but it won’t be as straight as the implementation based on <code class="highlighter-rouge">AtomicInteger</code>.</p>
+
+<p>It’s not the only concern here. The most crucial question is: why we need to introduce this complexity? For what purpose? If we think more about the purpose for the class to be thread safe, we’ll realise that thread safety is characteristic, demanded by the calling side.
+It’s client code that is calling <code class="highlighter-rouge">Visitors</code> from many threads. So, if we define <code class="highlighter-rouge">Visitors</code> as attribute of a class that calls it from several threads and expects it to be thread-safe, doesn’t it mean that according to <a href="">Liskov Substitution principle</a> all implementations of <code class="highlighter-rouge">Visitors</code> must be thread safe, without exceptions? Do we really need to make this trait to be outlined in decorator? I see no point in it.</p>
+
+<h2 id="loggingtracing">Logging/Tracing</h2>
+
+<p>Logging decorators were proposed in comments to the following <a href="https://www.yegor256.com/2019/03/19/logging-without-static-logger.html">post</a>. And in my opinion it is very controversial idea.</p>
+
+<p>Lets assume <code class="highlighter-rouge">User</code> interface and <code class="highlighter-rouge">TwitterUser</code> implementation again. We want to write <code class="highlighter-rouge">LoggedUser</code> decorator for it. What would we actually be able to log there?</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">LoggedUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Logger</span> <span class="n">log</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">LoggedUser</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">user</span> <span class="o">=</span> <span class="n">user</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">String</span> <span class="n">name</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="na">name</span><span class="o">();</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"User name accessed: "</span> <span class="o">+</span> <span class="n">name</span><span class="o">);</span>
+        <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Only the user’s name? Not much. What such log would give to us? Nothing. At the same time, if we introduced logging straight inside <code class="highlighter-rouge">TwitterUser</code>, we’d be pretty easily able to log the request to Twitter API with all its headers, URL and input data, and response from it, with status code, headers and exact body. If <code class="highlighter-rouge">TwitterUser</code> had a caching functionality inside, we’d be able also to trace the fact whether the user’s name was obtained for cache or from API response. That would be indeed the informative and useful log.</p>
+
+<h2 id="to-sum-up">To sum up</h2>
+
+<p>Encapsulation is a great feature. But sometimes, encapsulation becomes an obstacle and source of pain, when the boundaries between objects are drawn in a wrong way. Decorators are one of the ways to draw these boundaries, and are not a universal panacea for everything. Such powerfull pattern doesn’t take away from you the responsibility to split the logic to functionally-cohesive blocks of code (classes). Characteristics like equality, logging, caching and thread safety almost always exist a part of certain functional block, and almost never exist separately from the functionality they serve. Splitting functionally cohesive blocks to smaller parts leads to the same sort of maintainability mess as uniting non-cohesive functionality in one place, if not worse.</p>
+
+<p>That’s why I say: think seven times before placing the stuff above to a decorator.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
