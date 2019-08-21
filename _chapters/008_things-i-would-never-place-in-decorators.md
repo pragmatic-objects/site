@@ -40,7 +40,7 @@ class ComparableUser implements User {
 
   @Override
   public boolean equals(Object that) {
-    if (obj instanceof EqUser) {
+    if (obj instanceof User) {
       final User other = (User) obj;
       return Objects.equals(this.origin.name(), that.name());
     }
