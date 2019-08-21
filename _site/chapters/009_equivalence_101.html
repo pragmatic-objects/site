@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Equivalence 101</title>
+    <meta name="description"
+          content="Full guide on Elegant Objects equivalence">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Equivalence 101</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Equivalence 101'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>Some time ago, in the post about <a href="004_object_equivalence.html">objects equality</a>, I slightly touched the subject of the equivalence — a logic, that is a good candidate to place inside each and every elegantly-designed object’s <code class="highlighter-rouge">equals</code> method.
+However, the subject is much deeper then it was covered there. That’s why I decided to dedicate a separate post exclusively to the equivalence. I believe that understanding equivalence is crucial for adopting Elegant Objects approach in languages and environments, which were not initially designed for Elegant Objects (like Java).</p>
+
+<h2 id="disclaimer">Disclaimer</h2>
+
+<p>Note that in this post I’ll cover only theoretical aspects of equivalence, intentionally omitting its practical usefulness. That’s why you may find this post boring and pointless. Yet, it needs to be outlined, because it is fundamental, and I am going to refer to it often in future posts.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>In my opinion, one of the most important postulates from “Elegant Objects”, which makes it completely different from mainstream understanding of OOP, is that <a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html">the objects must be immutable</a>. However, immutability is mostly the consequence here than the cause. It’s not only about making attributes final — the whole idea behind attributes is reconsidered.</p>
+
+<p>If you search for a definition of what OOP is, you’ll most probably find something like this in top results:</p>
+
+<blockquote>
+  <p>Object-oriented programming (OOP) is a programming paradigm based on the concept of “objects”, which can <strong>contain data, in the form of fields (often known as attributes)</strong>, and code, in the form of procedures (often known as methods). A feature of objects is an object’s procedures that can access and often modify the data fields of the object with which they are associated (objects have a notion of “this” or “self”).</p>
+
+  <p><a href="https://en.wikipedia.org/wiki/Object-oriented_programming">Wikipedia</a></p>
+</blockquote>
+
+<p>The attributes in the mainstream understanding of OOP are usually treated as a data, that an object possesses and encapsulates. Some <em>state</em>, that object holds and protects. At the same time, the state placed inside the objects attributes causes problems, for which OOP is often criticized. Like temporal coupling, non-determinism and increased complexity.</p>
+
+<p>On the other hand, in Elegant interpretation of OOP, instead of representing a mutable state of an object, attributes represent certain <em>identity</em>, by means of which certain mutable state can be resolved. Mutable state here can have different forms: it can be represented by a file on file system, a table row in some database, a mutable structure, like <code class="highlighter-rouge">HashMap</code> or <code class="highlighter-rouge">ArrayList</code>… But <em>the same identity should always lead to the same state</em>.</p>
+
+<p>Consider an example:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">Counter</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="o">,</span> <span class="n">Integer</span><span class="o">&gt;</span> <span class="n">STATE</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashMap</span><span class="o">&lt;&gt;();</span>
+    
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">identity</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">Counter</span><span class="o">(</span><span class="n">String</span> <span class="n">identity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">identity</span> <span class="o">=</span> <span class="n">identity</span><span class="o">;</span>
+    <span class="o">}</span>
+    
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">Integer</span> <span class="nf">next</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">STATE</span><span class="o">.</span><span class="na">compute</span><span class="o">(</span><span class="n">identity</span><span class="o">,</span> <span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="n">value</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+            <span class="k">if</span><span class="o">(</span><span class="n">Objects</span><span class="o">.</span><span class="na">isNull</span><span class="o">(</span><span class="n">value</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">value</span><span class="o">++;</span>
+            <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Here, if we instantiate two <code class="highlighter-rouge">Counter</code> instances with the same <code class="highlighter-rouge">identity</code> value, we’ll get two instances of object which share the same state:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Counter</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Counter</span><span class="o">(</span><span class="s">"A"</span><span class="o">);</span>
+<span class="n">a</span><span class="o">.</span><span class="na">next</span><span class="o">();</span> <span class="c1">// 0</span>
+
+<span class="n">Counter</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Counter</span><span class="o">(</span><span class="s">"A"</span><span class="o">);</span>
+<span class="n">b</span><span class="o">.</span><span class="na">next</span><span class="o">();</span> <span class="c1">// 1</span>
+<span class="n">a</span><span class="o">.</span><span class="na">next</span><span class="o">();</span> <span class="c1">// 2</span>
+
+<span class="n">Counter</span> <span class="n">c</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Counter</span><span class="o">(</span><span class="s">"C"</span><span class="o">);</span>
+<span class="n">c</span><span class="o">.</span><span class="na">next</span><span class="o">();</span> <span class="c1">// 0</span>
+</code></pre></div></div>
+
+<p>What’s curious about all this, is that it doesn’t matter anymore which class instance we have at hands: <code class="highlighter-rouge">a</code> or <code class="highlighter-rouge">b</code>. Until we know the identity of <code class="highlighter-rouge">Counter</code>, we can always reproduce the counter object from scratch anywhere in the program. And by calling <code class="highlighter-rouge">next</code> on both instances, we will trigger <em>exactly</em> the same set of instructions, access the same state and produce the same side effects on it.</p>
+
+<p>It’s time to bring the definition of equivalence:</p>
+
+<blockquote>
+  <p>Lets call two class instances equivalent, if they have exactly the same identity, by which its state and behavior are resolved.</p>
+</blockquote>
+
+<p>In example above, instance <code class="highlighter-rouge">a</code> is equivalent to <code class="highlighter-rouge">b</code>, but not equivalent to <code class="highlighter-rouge">c</code>.</p>
+
+<p>Besides, terms <em>behavior</em>, <em>state</em> and <em>identity</em> I borrowed from <a href="https://www.yegor256.com/2014/12/09/immutable-object-state-and-behavior.html#identity-state-and-behavior">here</a>.</p>
+
+<h2 id="what-makes-two-class-instances-equivalent">What makes two class instances equivalent?</h2>
+
+<p>From the definition it is obvious that in order to say whether two instances are equivalent, we must compare their identity. Lets consider the <code class="highlighter-rouge">Fraction</code> example, which I often use in many of my posts, one more time:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FracStatic</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="kt">int</span> <span class="n">numerator</span><span class="o">,</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">numerator</span> <span class="o">=</span> <span class="n">numerator</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">denominator</span> <span class="o">=</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">FracStatic</code> is the simplest case: it has identity consisting of two integers, it has no state, and its behavior is rather trivial. It is obvious that two <code class="highlighter-rouge">FracStatic</code> instances will be equivalent if they have the same values for <code class="highlighter-rouge">numerator</code> and <code class="highlighter-rouge">denominator</code> attributes.</p>
+
+<p>But it is not always that simple. In languages like Java we have plenty of objects that just don’t declare their identity by attributes. For example: Java structures from <code class="highlighter-rouge">java.util</code>. You can’t instantiate two <code class="highlighter-rouge">ArrayList</code> instances that would share the same array under the hood. Each of the two will be unique and independent. It is neither good, nor bad, it just makes things a bit more complicated:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GuestList</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">guests</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GuestList</span><span class="o">(</span><span class="n">HashSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">guests</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">guests</span> <span class="o">=</span> <span class="n">guests</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">invite</span><span class="o">(</span><span class="n">String</span> <span class="n">guest</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">guests</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">guest</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">boolean</span> <span class="nf">isInvited</span><span class="o">(</span><span class="n">String</span> <span class="n">person</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">guests</span><span class="o">.</span><span class="na">contains</span><span class="o">(</span><span class="n">person</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="n">GuestList</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="k">new</span> <span class="n">HashSet</span><span class="o">());</span>
+<span class="n">GuestList</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="k">new</span> <span class="n">HashSet</span><span class="o">());</span>
+</code></pre></div></div>
+
+<p>Objects <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code> here are not equivalent, because their identity (<code class="highlighter-rouge">guests</code> attribute) points to the different <em>state</em> (located in different <code class="highlighter-rouge">HashSet</code> instances). If they were equivalent, the program below would output <code class="highlighter-rouge">true</code>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="o">.</span><span class="na">invite</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">);</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">isInvited</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">));</span>
+</code></pre></div></div>
+
+<p>At the same time, we can make these two instances of <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code> equivalent by providing the same <code class="highlighter-rouge">HashSet</code> instance to them:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">HashSet</span> <span class="n">memory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">();</span>
+<span class="n">GuestList</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="n">memory</span><span class="o">);</span>
+<span class="n">GuestList</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="n">memory</span><span class="o">);</span>
+</code></pre></div></div>
+
+<p>What makes <code class="highlighter-rouge">GuestList</code> and <code class="highlighter-rouge">HashSet</code> classes different? Why the instances of the former can be equivalent and the instances of the latter cannot? Two things actually:</p>
+
+<ul>
+  <li>Attributes of <code class="highlighter-rouge">GuestList</code> are all final. This eliminates all local side effects that do certain object instance unique and irreplaceable.</li>
+  <li>Constructor of <code class="highlighter-rouge">GuestList</code> has no logic inside. This guarantees that if we make two invocations of one constructor with the same set of arguments, it will result in creation of two objects with the same values of attributes.</li>
+</ul>
+
+<p>It all gives us an important conclusion:</p>
+
+<blockquote>
+  <p>Equivalence term is applicable to instances of only those classes, constructors of which are logic free and attributes of which are final.</p>
+</blockquote>
+
+<p>Taking into account all the examples and conclusions we made above, we can make the second definition of equivalence:</p>
+
+<blockquote>
+  <p>Two instances are equivalent, if they are of the same base type and each of their attributes refer to either the same class instance, or a pair of equivalent ones.</p>
+</blockquote>
+
+<h2 id="equivalence-and-subtyping">Equivalence and subtyping</h2>
+
+<p>The part of definition above, saying about “base type”, may sound ambigous here. Yet it is not mistake. I intentionally have formulated it this way. It is because instances can still be equivalent even if they are instantiated from the different classes. Consider an example:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FracStatic</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="kt">int</span> <span class="n">numerator</span><span class="o">,</span> <span class="kt">int</span> <span class="n">denominator</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">numerator</span> <span class="o">=</span> <span class="n">numerator</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">denominator</span> <span class="o">=</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numerator</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">denominator</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FracOneHalf</span> <span class="kd">extends</span> <span class="n">FracStatic</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">FracOneHalf</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">new</span> <span class="nf">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">)</span> <span class="o">==</span> <span class="k">new</span> <span class="n">FracOneHalf</span><span class="o">();</span>
+</code></pre></div></div>
+
+<p>This example was taken from the chapter about <a href="005_implementation_inheritance_paranoia.html#aliases">aliases</a>. It demonstrates, how an instance of the alias-subtype can be equivalent to the instance of the base class.</p>
+
+<h2 id="equivalence-and-composition">Equivalence and composition</h2>
+
+<p>Second part of equivalence definition says that “Instances are equivalent if their attributes refer to either the same class instance, or a pair of equivalent ones”. Lets look how the second part of definition works in practice. Consider additional implementation of <code class="highlighter-rouge">Fraction</code>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">FracSum</span> <span class="kd">implements</span> <span class="n">Fraction</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">left</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">FracSum</span><span class="o">(</span><span class="n">Fraction</span> <span class="n">left</span><span class="o">,</span> <span class="n">Fraction</span> <span class="n">right</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">left</span> <span class="o">=</span> <span class="n">left</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">right</span> <span class="o">=</span> <span class="n">right</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">numerator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">a</span> <span class="o">=</span> <span class="n">left</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="kd">final</span> <span class="kt">int</span> <span class="n">b</span> <span class="o">=</span> <span class="n">right</span><span class="o">.</span><span class="na">numerator</span><span class="o">()</span> <span class="o">*</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">int</span> <span class="nf">denominator</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">left</span><span class="o">.</span><span class="na">denominator</span><span class="o">()</span> <span class="o">*</span> <span class="n">right</span><span class="o">.</span><span class="na">denominator</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Now, check these instances:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Fraction</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span><span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span> <span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">));</span>
+<span class="n">Fraction</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span><span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">),</span> <span class="k">new</span> <span class="n">FracOneHalf</span><span class="o">());</span>
+<span class="n">Fraction</span> <span class="n">c</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span><span class="k">new</span> <span class="n">FracOneHalf</span><span class="o">(),</span> <span class="k">new</span> <span class="n">FracOneHalf</span><span class="o">());</span>
+
+<span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="o">==</span> <span class="n">c</span><span class="o">;</span>
+</code></pre></div></div>
+
+<p>Attributes of <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">b</code> and <code class="highlighter-rouge">c</code> refer to different, yet equivalent instances of <code class="highlighter-rouge">Fraction</code>. Taking into account that <code class="highlighter-rouge">a</code>, <code class="highlighter-rouge">b</code> and <code class="highlighter-rouge">c</code> belong to the same base type <code class="highlighter-rouge">FracSum</code>, we can claim that they are equivalent.</p>
+
+<h2 id="instead-of-conclusion">Instead of conclusion</h2>
+
+<p>If we sum up the facts that constructors of elegant objects contain no logic, the attributes are final, <code class="highlighter-rouge">instanceof</code>s and casts are under <a href="https://www.yegor256.com/2015/04/02/class-casting-is-anti-pattern.html">taboo</a>, we will realise that we don’t need these objects to be allocated in memory more then once. Each pair of equivalent objects, allocated in some program, we can always replace to the one, and vice versa:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">Fraction</span> <span class="n">sum1</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span><span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">),</span> <span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">));</span>
+
+<span class="n">Fraction</span> <span class="n">arg</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracStatic</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">3</span><span class="o">);</span>
+<span class="n">Fraction</span> <span class="n">sum2</span> <span class="o">=</span> <span class="k">new</span> <span class="n">FracSum</span><span class="o">(</span><span class="n">arg</span><span class="o">,</span> <span class="n">arg</span><span class="o">);</span>
+
+<span class="n">sum1</span> <span class="o">==</span> <span class="n">sum2</span><span class="o">;</span>
+</code></pre></div></div>
+
+<p>It means an awesome fact: constructors of truly elegant classes are actually the <a href="https://en.wikipedia.org/wiki/Pure_function"><em>pure functions</em></a>, with all the benefits of purity. And it doesn’t matter anymore that technically, <code class="highlighter-rouge">new</code> keyword allocates us separate equivalent class instances. Semantically, it will just bring us the access to one object.</p>
+
+<p>That does make difference. But it’s another story.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
