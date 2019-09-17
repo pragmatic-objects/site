@@ -168,7 +168,7 @@ or data-like interface with access methods for the same data (and SQL-speaking o
 So we invented several tricks of how to handle this complexity. We splat our code to reusable components, <a href="006_design_core_principles.html">abstracting out the purpose from the details of how this purpose is achieved, and 
 separating things which are volatile from things, which are stable</a>.</p>
 
-<p>When we design code, we follow certain principles. We call them SOLID. We care about cohesion and coupling, encapsulation, inheritance, polymorphism. We are concerned about <a href="objects-should-be-immutable.html">mutability</a>, <a href="inheritance-is-procedural.html">broken inheritance</a>, many things…</p>
+<p>When we design code, we follow certain principles. We call them <a href="https://en.wikipedia.org/wiki/SOLID">SOLID</a>. We care about cohesion and coupling, encapsulation, inheritance, polymorphism. We are concerned about <a href="objects-should-be-immutable.html">mutability</a>, <a href="inheritance-is-procedural.html">broken inheritance</a>, many things…</p>
 
 <p>But all these principles mean nothing when it is about data.</p>
 
@@ -176,7 +176,7 @@ separating things which are volatile from things, which are stable</a>.</p>
 several data formats (JSON, BSON, XML, YAML, protobuf…), several means for quering and transforming data (SQL, XPath, XSLT…). We invented several types of data structures with
 certain access and modification characteristics. We invented different kinds of indexes for improving speed of querying over the large data sets.</p>
 
-<p>What is notable about data is that cohesion, coupling, encapsulation and other things are odd and meaningless here. In the world of data, ACID are the principles we care about. Not SOLID.</p>
+<p>What is notable about data is that cohesion, coupling, encapsulation and other things are odd and meaningless here. In the world of data, <a href="https://en.wikipedia.org/wiki/ACID">ACID</a> are the principles we care about. Not SOLID.</p>
 
 <p>While we encapsulate details in code in order to simplify its reuse, constrain its invariants, data models were never supposed to hide anything. On the contrary, we provided more and more various instruments for obtaining pieces of naked data as fast as it is possible. Restricting access to data or separating it still makes sense in certain cases, like tenancy or clustering. But it <em>never</em> makes working with data or maintaining data models simpler. Just like it is never intended to simplify it.</p>
 
