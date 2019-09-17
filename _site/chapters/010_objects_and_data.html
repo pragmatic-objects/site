@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Objects and data</title>
+    <meta name="description"
+          content="What are the differences between object and data, and how to use data in the world of objects">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Objects and data</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Objects and data'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>According to my observations, topics, related to data are one of the most popular and controversial topics in discussions around Elegant Objects.
+If <a href="https://www.yegor256.com/2016/07/06/data-transfer-object.html">DTO is harmful anti-OOP pattern</a>, and <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html#whats-wrong-with-orm">ORMs are tools of evil</a>,
+what should we use instead? How are we supposed to work with data in places, where we are working with data by definition? What should we
+do on RESTful endpoints level, where we accept and emit data in some format? What should we do on database communication tier, where
+we work with data tuples?</p>
+
+<p>At the moment, Elegant Objects proposes two alternatives to DTO: <a href="https://www.yegor256.com/2018/02/27/parsing-objects.html">parsing objects</a>
+and <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html">SQL speaking objects</a>. They both have one common trait. Instead of structure:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">UserDTO</span> <span class="o">{</span>
+      <span class="kd">private</span> <span class="kt">int</span> <span class="n">id</span><span class="o">;</span>
+      <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+
+      <span class="kd">public</span> <span class="nf">UserDTO</span><span class="o">(</span><span class="kt">int</span> <span class="n">id</span><span class="o">,</span> <span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+	     <span class="k">this</span><span class="o">.</span><span class="na">id</span> <span class="o">=</span> <span class="n">id</span><span class="o">;</span>
+      <span class="o">}</span>
+
+      <span class="kd">public</span> <span class="kt">int</span> <span class="nf">getId</span><span class="o">()</span> <span class="o">{</span>
+      	     <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">id</span><span class="o">;</span>
+      <span class="o">}</span>
+
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setId</span><span class="o">(</span><span class="kt">int</span> <span class="n">id</span><span class="o">)</span> <span class="o">{</span>
+      	     <span class="k">this</span><span class="o">.</span><span class="na">id</span> <span class="o">=</span> <span class="n">id</span><span class="o">;</span>
+      <span class="o">}</span>
+
+      <span class="kd">public</span> <span class="n">String</span> <span class="nf">getName</span><span class="o">()</span> <span class="o">{</span>
+      	     <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">name</span><span class="o">;</span>
+      <span class="o">}</span>
+
+      <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setName</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+      	     <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+      <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>…they propose to access data by interface:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">id</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>And it really makes sense. Instead piece of soulless data, got god knows from where, 
+we have a clear contract, encapsulating details of how the data is obtained,
+and protect invariants behind it. However, in my practice, I realized that it is not enough. 
+It is still painful to use such data-like interfaces. We miss something.</p>
+
+<h2 id="whats-the-problem-with-data-like-interfaces">What’s the problem with data-like interfaces?</h2>
+
+<p>Lets take some typical example — the <code class="highlighter-rouge">Customer</code>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Customer</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">passportId</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">address</span><span class="o">();</span>
+    <span class="n">CreditCard</span> <span class="nf">creditCard</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>How good is this interface? The answer is the same as for any other abstraction — it depends on how good it fits the business context.
+So lets imagine some. Lets assume that we develop a simple online shop. Consider two use cases:</p>
+
+<ul>
+  <li>A package with ordered items is sent to a customer:</li>
+</ul>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Delivery</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">run</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">DeliveryService</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">deliver</span><span class="o">(</span><span class="n">String</span> <span class="n">address</span><span class="o">,</span> <span class="n">Package</span> <span class="kn">package</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">FedEx</span> <span class="kd">implements</span> <span class="n">DeliveryService</span> <span class="o">{</span>
+    <span class="c1">// communicates with API of a partner delivery company</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Package</span> <span class="kn">package</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Customer</span> <span class="n">customer</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">DeliveryService</span> <span class="n">deliveryService</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Obtain customer's address and ask your business partner to deliver it</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Customer is charged for some service</li>
+</ul>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Bill</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">charge</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Customer</span> <span class="n">customer</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">amount</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">charge</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Obtain the customer's credit card info and charge an amount from it.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>There could be much more of them, and these two are oversimplified, but lets stop on them. It’s obvious that customer entity will participate in both scenarious.
+But what about <em>the data</em> it produces? Do we need customer’s passport id to pay some bill? Does a service that delivers the package needs to know the customers name?</p>
+
+<p>No. In first case, a tuple of <code class="highlighter-rouge">{passportId, address}</code> will be enough. In second case — <code class="highlighter-rouge">{name, creditCard}</code> is sufficient.</p>
+
+<p>You may ask here: “What is the problem in providing access to more information then the object needs?”. I see one, but crucial:</p>
+
+<h3 id="abstractions-based-on-data-are-usually-unstable">Abstractions based on data are usually unstable</h3>
+
+<p><code class="highlighter-rouge">Customer</code> in our example is an interface. And interfaces are created to be implemented in various ways. <code class="highlighter-rouge">Customer</code> could have been implemented as
+an <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html">SQL speaking object</a>, or a fake object with static data. It could be read 
+from a file, or obtained from a user session, or queried from a neibour microservice. All these implementations are equally valid until they 
+respect <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution principle</a>. The more of potential implementations
+you can imagine for your interfaces, the more flexible and easy to extend is your application.</p>
+
+<p>In our example, <code class="highlighter-rouge">Customer</code> interface is data-like interface. And as a data-like interface, it provides an access to a certain data tuple. But what this tuple refers to?
+Does it reflect business? Doubtly, because our business are those two use cases I outlined in the beginning. Business mentions a customer, but doesn’t specify (yet) its contents.
+And as an interface — pure abstraction — <code class="highlighter-rouge">Customer</code> <em>must</em> stand for business.</p>
+
+<p>If not the business, what does it stand for?</p>
+
+<p>In my opinion, there is one mental trap with any data-like structures. No matter how it is done: DTO, data-like interface, case class, or <code class="highlighter-rouge">struct</code>. Usually it is very tempting to repeat the underlying data model in them. If you have
+a table <code class="highlighter-rouge">Customer</code> in your application’s relational database, and it has columns <code class="highlighter-rouge">{id, name, passport, address, creditCard}</code>, there is big chance that your application will have either DTO, containing all these fields,
+or data-like interface with access methods for the same data (and SQL-speaking object implementing it). It is so tempting because it is convenient from data query perspective: it is just easier to select the whole customer in one shot: <code class="highlighter-rouge">SELECT * FROM CUSTOMER</code>.</p>
+
+<p>Doing one request may be reasonable from data access perspective (provided that you really use all of the fields you got), but tying your interfaces to your data schema is very dangerous. Simply because data model tends to be <em>volatile</em>. And if your code abstractions repeat your data model, they will be volatile together. For <em>interfaces</em> — purest of all abstractions — that is <a href="006_design_core_principles.html#to-sum-up">unacceptable</a>.</p>
+
+<p>While being changed together with your business, <code class="highlighter-rouge">Customer</code> will inevitablty cause you pain. Because together with the <code class="highlighter-rouge">Customer</code>, you’ll need to update all its implementations. When you remove some fields, or change their type or semantics, it can also impact calling side, which is still bound on it. But it reveals its true ugliness after various updates on <code class="highlighter-rouge">Customer</code> during pressing milestones, when it can end up being an interface with decades of methods, to which a half of your application is bound to. Just imagine a fake implementation for it… And its instantiation in tests… While the components under test probably use just a couple of its methods… Brrrgh!</p>
+
+<h3 id="objects-vs-data">Objects vs data</h3>
+
+<p>Curious observation: actually if we look at ways and principles of designing data models and designing software components, we’ll find many differences. Actully, more correct would be to say that we won’t find anything common.</p>
+
+<p>On one side, there is code. Over the years, code of our solutions grew in complexity, and business requirements, which challenge our code, become more complex, volatile and demanding.
+So we invented several tricks of how to handle this complexity. We splat our code to reusable components, <a href="006_design_core_principles.html">abstracting out the purpose from the details of how this purpose is achieved, and 
+separating things which are volatile from things, which are stable</a>.</p>
+
+<p>When we design code, we follow certain principles. We call them SOLID. We care about cohesion and coupling, encapsulation, inheritance, polymorphism. We are concerned about <a href="objects-should-be-immutable.html">mutability</a>, <a href="inheritance-is-procedural.html">broken inheritance</a>, many things…</p>
+
+<p>But all these principles mean nothing when it is about data.</p>
+
+<p>Over the years, amount of data and demands to its consistency, processing and quering speed grew as well. To face this challenge, we invented several data models (relational, graph, NoSQL), 
+several data formats (JSON, BSON, XML, YAML, protobuf…), several means for quering and transforming data (SQL, XPath, XSLT…). We invented several types of data structures with
+certain access and modification characteristics. We invented different kinds of indexes for improving speed of querying over the large data sets.</p>
+
+<p>What is notable about data is that cohesion, coupling, encapsulation and other things are odd and meaningless here. In the world of data, ACID are the principles we care about. Not SOLID.</p>
+
+<p>While we encapsulate details in code in order to simplify its reuse, constrain its invariants, data models were never supposed to hide anything. On the contrary, we provided more and more various instruments for obtaining pieces of naked data as fast as it is possible. Restricting access to data or separating it still makes sense in certain cases, like tenancy or clustering. But it <em>never</em> makes working with data or maintaining data models simpler. Just like it is never intended to simplify it.</p>
+
+<p>While we abstract out stable code components from volatile implementations, in a typical data model <em>everything</em> is potentially volatile. Almost every business requirement impacts data model of your application. There is just nothing to abstract out. In data world, nobody even tries to fight with volatility because it is meaningless. Instead, they use data migration and schema versioning solutions. More sophisticated are these solutions, less concern there is to people who maintain the model.</p>
+
+<p>While we are concerned about mutability in our code, agitate for purity and statelessness of our components, data models are just mutable by definition. To think more of it, mutability is just innatural for computer programs. We can hide all side effects behind immutable objects or monads but we’ll never run away from the fact that in the end, our programm will be compiled to a set of imperative machine instructions, operating with data models in mutable RAM, hard disk, stateful IO.</p>
+
+<p>That’s why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. <code class="highlighter-rouge">Customer</code>, that repeats your data model, causes conflict of these two different worlds: code and data.</p>
+
+<h3 id="a-possible-way-out-of-it">A possible way out of it</h3>
+
+<p>Well, the options to fight against it are quite limited actually. If we really need the <code class="highlighter-rouge">Customer</code> data-like interface, that is bound to a table from some data schema, we just need to keep in mind 
+that despite being an interface, is <em>not</em> a stable abstraction anymore.</p>
+
+<p>And when some thing is unstable, it is in your interest to limit its reuse to the minimum. One way of doing it is the following:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Package</span> <span class="kn">package</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">PassportId</span> <span class="n">passportId</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Address</span> <span class="n">address</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">DeliveryService</span> <span class="n">deliveryService</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Ask your business partner, who is specialized on delivering packages, to deliver the package to a certain address</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">CustomerName</span> <span class="n">name</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">CreditCard</span> <span class="n">creditCard</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">amount</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">charge</span><span class="o">()</span> <span class="o">{</span>
+        <span class="c1">// Obtain the customer's credit card info and charge an amount from it.</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+
+<span class="kd">interface</span> <span class="nc">CustomerName</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">Address</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">address</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">CreditCard</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">creditCardNumber</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">PassportId</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">passportId</span><span class="o">();</span>
+<span class="o">}</span>
+
+
+<span class="kd">interface</span> <span class="nc">Customer</span> <span class="kd">extends</span> <span class="n">CustomerName</span><span class="o">,</span> <span class="n">Address</span><span class="o">,</span> <span class="n">CreditCard</span><span class="o">,</span> <span class="n">PassportId</span> <span class="o">{</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Notice that <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code> doesn’t bound directly to <code class="highlighter-rouge">Customer</code>. Minus two reuse places of <code class="highlighter-rouge">Customer</code>. Since you don’t need fake customers to test <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code>, you don’t need static implementation of <code class="highlighter-rouge">Customer</code> either. Minus one more. Theoretically, <code class="highlighter-rouge">Customer</code> could still be implemented as an SQL-speaking object based on <code class="highlighter-rouge">SELECT * FROM CUSTOMER</code> query. But <em>the caller side doesn’t expect it anymore</em>. SQL speaking customer becomes optional. The callers are bound only on those pieces of <code class="highlighter-rouge">Customer</code> that they need. <code class="highlighter-rouge">CustomerBill</code> doesn’t require fully implemented <code class="highlighter-rouge">Customer</code>, it is okay with a pair of <code class="highlighter-rouge">CustomerName</code> and <code class="highlighter-rouge">CreditCard</code> implementations. And while <code class="highlighter-rouge">Customer</code> implements these pieces, it can be substituted there as well.</p>
+
+<p>If in future business decides to change package delivery procedure and bound it to, I don’t know, the customer’s phone number, the only thing that will be impacted by this business decision is <code class="highlighter-rouge">DeliveryToCustomer</code> — new attribute <code class="highlighter-rouge">PhoneNumber phone</code> will be introduced there, and handled in <code class="highlighter-rouge">run()</code> method. From where this phone number would come from? Depends on what business wants, but this is low-level details. Probably we’d update our <code class="highlighter-rouge">CUSTOMER</code> table, keep customers phones there and provide an access to them via <code class="highlighter-rouge">Customer</code> interface? Or it can be obtained from a separate phone catalog service via some new implementation of <code class="highlighter-rouge">PhoneNumber</code>? What important is that no existing abstractions were changed in process.</p>
+
+<h3 id="instead-of-conclusion">Instead of conclusion</h3>
+
+<p>At this time the solution may seem like it doesn’t worth it. There is plenty of boilerplate there.</p>
+
+<p>Maybe so. But it is the only possible solution to the problem of “code vs data” dualism. It is hard to decouple data-like constructs from underlying data model, but the code <em>must</em> be decoupled from it, for the sake of maintainability. And — one spoiler ahead — there is actually one solution to this boilerplate problem. But it is another story.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
