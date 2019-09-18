@@ -80,7 +80,7 @@ interface Delivery {
 }
 
 interface DeliveryService {
-    void deliver(String address, Package package);
+    void deliver(String address, Package pkg);
 }
 
 class FedEx implements DeliveryService {
@@ -88,7 +88,7 @@ class FedEx implements DeliveryService {
 }
 
 class DeliveryToCustomer {
-    private final Package package;
+    private final Package pkg;
     private final Customer customer;
     private final DeliveryService deliveryService;
 
@@ -179,13 +179,13 @@ And when some thing is unstable, it is in your interest to limit its reuse to th
 
 ```java
 class DeliveryToCustomer {
-    private final Package package;
+    private final Package pkg;
     private final PassportId passportId;
     private final Address address;
     private final DeliveryService deliveryService;
 
     public final void run() {
-        // Ask your business partner, who is specialized on delivering packages, to deliver the package to a certain address
+        // Ask your business partner to deliver the package to a certain address
     }
 }
 
