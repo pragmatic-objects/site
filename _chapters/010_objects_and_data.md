@@ -122,7 +122,7 @@ No. In first case, a tuple of `{passportId, address}` will be enough. In second 
 
 You may ask here: "What is the problem in providing access to more information then the object needs?". I see one, but crucial:
 
-### Abstractions based on data are usually unstable
+## Abstractions based on data are usually unstable
 
 `Customer` in our example is an interface. And interfaces are created to be implemented in various ways. `Customer` could have been implemented as
 an [SQL speaking object](https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html), or a fake object with static data. It could be read 
@@ -144,7 +144,7 @@ Doing one request may be reasonable from data access perspective (provided that 
 
 While being changed together with your business, `Customer` will inevitablty cause you pain. Because together with the `Customer`, you'll need to update all its implementations. When you remove some fields, or change their type or semantics, it can also impact calling side, which is still bound on it. But it reveals its true ugliness after various updates on `Customer` during pressing milestones, when it can end up being an interface with decades of methods, to which a half of your application is bound to. Just imagine a fake implementation for it... And its instantiation in tests... While the components under test probably use just a couple of its methods... Brrrgh!
 
-### Objects vs data
+## Objects vs data
 
 Curious observation: actually if we look at ways and principles of designing data models and designing software components, we'll find many differences. Actully, more correct would be to say that we won't find anything common.
 
@@ -170,7 +170,7 @@ While we are concerned about mutability in our code, agitate for purity and stat
 
 That's why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. `Customer`, that repeats your data model, causes conflict of these two different worlds: code and data.
 
-### A possible way out of it
+## A possible way out of it
 
 Well, the options to fight against it are quite limited actually. If we really need the `Customer` data-like interface, that is bound to a table from some data schema, we just need to keep in mind 
 that despite being an interface, is *not* a stable abstraction anymore.
@@ -225,7 +225,7 @@ Notice that `CustomerBill` and `DeliveryToCustomer` doesn't bound directly to `C
 
 If in future business decides to change package delivery procedure and bound it to, I don't know, the customer's phone number, the only thing that will be impacted by this business decision is `DeliveryToCustomer` --- new attribute `PhoneNumber phone` will be introduced there, and handled in `run()` method. From where this phone number would come from? Depends on what business wants, but this is low-level details. Probably we'd update our `CUSTOMER` table, keep customers phones there and provide an access to them via `Customer` interface? Or it can be obtained from a separate phone catalog service via some new implementation of `PhoneNumber`? What important is that no existing abstractions were changed in process.
 
-### Instead of conclusion
+## Instead of conclusion
 
 At this time the solution may seem like it doesn't worth it. There is plenty of boilerplate there.
 

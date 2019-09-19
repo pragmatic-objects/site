@@ -138,7 +138,7 @@ But what about <em>the data</em> it produces? Do we need customer’s passport i
 
 <p>You may ask here: “What is the problem in providing access to more information then the object needs?”. I see one, but crucial:</p>
 
-<h3 id="abstractions-based-on-data-are-usually-unstable">Abstractions based on data are usually unstable</h3>
+<h2 id="abstractions-based-on-data-are-usually-unstable">Abstractions based on data are usually unstable</h2>
 
 <p><code class="highlighter-rouge">Customer</code> in our example is an interface. And interfaces are created to be implemented in various ways. <code class="highlighter-rouge">Customer</code> could have been implemented as
 an <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html">SQL speaking object</a>, or a fake object with static data. It could be read 
@@ -160,7 +160,7 @@ or data-like interface with access methods for the same data (and SQL-speaking o
 
 <p>While being changed together with your business, <code class="highlighter-rouge">Customer</code> will inevitablty cause you pain. Because together with the <code class="highlighter-rouge">Customer</code>, you’ll need to update all its implementations. When you remove some fields, or change their type or semantics, it can also impact calling side, which is still bound on it. But it reveals its true ugliness after various updates on <code class="highlighter-rouge">Customer</code> during pressing milestones, when it can end up being an interface with decades of methods, to which a half of your application is bound to. Just imagine a fake implementation for it… And its instantiation in tests… While the components under test probably use just a couple of its methods… Brrrgh!</p>
 
-<h3 id="objects-vs-data">Objects vs data</h3>
+<h2 id="objects-vs-data">Objects vs data</h2>
 
 <p>Curious observation: actually if we look at ways and principles of designing data models and designing software components, we’ll find many differences. Actully, more correct would be to say that we won’t find anything common.</p>
 
@@ -186,7 +186,7 @@ certain access and modification characteristics. We invented different kinds of 
 
 <p>That’s why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. <code class="highlighter-rouge">Customer</code>, that repeats your data model, causes conflict of these two different worlds: code and data.</p>
 
-<h3 id="a-possible-way-out-of-it">A possible way out of it</h3>
+<h2 id="a-possible-way-out-of-it">A possible way out of it</h2>
 
 <p>Well, the options to fight against it are quite limited actually. If we really need the <code class="highlighter-rouge">Customer</code> data-like interface, that is bound to a table from some data schema, we just need to keep in mind 
 that despite being an interface, is <em>not</em> a stable abstraction anymore.</p>
@@ -240,7 +240,7 @@ that despite being an interface, is <em>not</em> a stable abstraction anymore.</
 
 <p>If in future business decides to change package delivery procedure and bound it to, I don’t know, the customer’s phone number, the only thing that will be impacted by this business decision is <code class="highlighter-rouge">DeliveryToCustomer</code> — new attribute <code class="highlighter-rouge">PhoneNumber phone</code> will be introduced there, and handled in <code class="highlighter-rouge">run()</code> method. From where this phone number would come from? Depends on what business wants, but this is low-level details. Probably we’d update our <code class="highlighter-rouge">CUSTOMER</code> table, keep customers phones there and provide an access to them via <code class="highlighter-rouge">Customer</code> interface? Or it can be obtained from a separate phone catalog service via some new implementation of <code class="highlighter-rouge">PhoneNumber</code>? What important is that no existing abstractions were changed in process.</p>
 
-<h3 id="instead-of-conclusion">Instead of conclusion</h3>
+<h2 id="instead-of-conclusion">Instead of conclusion</h2>
 
 <p>At this time the solution may seem like it doesn’t worth it. There is plenty of boilerplate there.</p>
 
