@@ -102,7 +102,7 @@ So lets imagine some. Lets assume that we develop a simple online shop. Consider
     <span class="c1">// communicates with API of a partner delivery company</span>
 <span class="o">}</span>
 
-<span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="o">{</span>
+<span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="kd">implements</span> <span class="n">Delivery</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Package</span> <span class="n">pkg</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Customer</span> <span class="n">customer</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">DeliveryService</span> <span class="n">deliveryService</span><span class="o">;</span>
@@ -121,7 +121,7 @@ So lets imagine some. Lets assume that we develop a simple online shop. Consider
     <span class="kt">void</span> <span class="nf">charge</span><span class="o">();</span>
 <span class="o">}</span>
 
-<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="o">{</span>
+<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="kd">implements</span> <span class="n">Bill</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Customer</span> <span class="n">customer</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">amount</span><span class="o">;</span>
 
@@ -193,7 +193,7 @@ that despite being an interface, is <em>not</em> a stable abstraction anymore.</
 
 <p>And when some thing is unstable, it is in your interest to limit its reuse to the minimum. One way of doing it is the following:</p>
 
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="o">{</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">DeliveryToCustomer</span> <span class="kd">implements</span> <span class="n">Delivery</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Package</span> <span class="n">pkg</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">PassportId</span> <span class="n">passportId</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">Address</span> <span class="n">address</span><span class="o">;</span>
@@ -204,7 +204,7 @@ that despite being an interface, is <em>not</em> a stable abstraction anymore.</
     <span class="o">}</span>
 <span class="o">}</span>
 
-<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="o">{</span>
+<span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="kd">implements</span> <span class="n">Bill</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">CustomerName</span> <span class="n">name</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">CreditCard</span> <span class="n">creditCard</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">amount</span><span class="o">;</span>

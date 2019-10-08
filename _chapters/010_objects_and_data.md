@@ -87,7 +87,7 @@ class FedEx implements DeliveryService {
     // communicates with API of a partner delivery company
 }
 
-class DeliveryToCustomer {
+class DeliveryToCustomer implements Delivery {
     private final Package pkg;
     private final Customer customer;
     private final DeliveryService deliveryService;
@@ -105,7 +105,7 @@ interface Bill {
     void charge();
 }
 
-class CustomerBill {
+class CustomerBill implements Bill {
     private final Customer customer;
     private final int amount;
 
@@ -178,7 +178,7 @@ that despite being an interface, is *not* a stable abstraction anymore.
 And when some thing is unstable, it is in your interest to limit its reuse to the minimum. One way of doing it is the following:
 
 ```java
-class DeliveryToCustomer {
+class DeliveryToCustomer implements Delivery {
     private final Package pkg;
     private final PassportId passportId;
     private final Address address;
@@ -189,7 +189,7 @@ class DeliveryToCustomer {
     }
 }
 
-class CustomerBill {
+class CustomerBill implements Bill {
     private final CustomerName name;
     private final CreditCard creditCard;
     private final int amount;

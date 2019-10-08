@@ -104,7 +104,7 @@ But at the same time, cache *contents* are not the identity of `Counter`. Only t
 
 ## Collections from objects-data dualism perspective
 
-As I stated before, [code and data worlds are different in their nature](010_objects_and_data.html#objects-vs-data). If we are saying that objects, as a representatives of code world, must be immutable, it doesn't mean that we should apply the same principle to the data. Your memory would never be immutable, nor would be your hard drive. We can't get rid of one side in favour of another: both code and data are equally important. That's why questions like "which collections are better" are dangerous and harmful.
+As I stated before, [code and data worlds are different in their nature](010_objects_and_data.html#objects-vs-data). If we are saying that objects, as a representatives of code world, must be immutable, it doesn't mean that we should apply the same principle to the data. We can't get rid of one side in favour of another: both code and data are equally important. That's why questions like "which collections are better" are dangerous and harmful. Both are useful in their niche.
 
 Persistent collections have good characteristics in code world: they make work with them more predictable, testable and transparent. That's what makes them good for keeping *identity*. But at data world, they lead to extra expences in terms of memory consumption and copying, and their immutable nature may cause inconveniences, when there are lots of writes on them.
 
