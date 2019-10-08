@@ -194,16 +194,16 @@ in testing. In other words, equivalence is not for everyday usage.
 Yet, since objects are not subject for comparisons, equivalence is a good at least for stubbing this nasty `equals` 
 method.
 
-## OO-Atom for generating equivalence logic
+## Tools for generating equivalence logic
 
 Equivalence logic is rather hard to write from scratch (a subject for a future post). For reasoning about 
 two object's equivalence in `equals`, and for keeping `equals` consistent and correct, the class of these objects 
-must meet certain [requirements](https://github.com/pragmatic-objects/oo-atom/blob/master/docs/ATOM_SPECIFICATION.md).
+must meet certain requirements (like, [all attributes of the class must be final](https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html) if not static, and [constructors must be logic-free](https://www.yegor256.com/2015/05/07/ctors-must-be-code-free.html)).
 
-That's why in my [OO-Atom](https://github.com/pragmatic-objects/oo-atom) tool I introduced capability of generating 
+That's why in my [OO-Equivalence](https://github.com/pragmatic-objects/oo-equivalence) (former [OO-Atom](https://github.com/pragmatic-objects/oo-atom)) tool I introduced capability of generating 
 equivalence logic in `equals` and `hashCode` methods for all elegantly-designed classes in project. For each class, 
 it checks all preconditions, and if they are met, automatically generates correct implementations of `equals` and 
-`hashCode` for them, taking into account all possible pitfalls.
+`hashCode` for them, taking into account all possible pitfalls. 
 
 No need to pollute the code of your objects with typecasts and `instanceof`'s anymore. The tool will make all dirty 
 work for you!
