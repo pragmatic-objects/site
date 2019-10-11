@@ -4,7 +4,7 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2019-10-08T19:47:35Z</updated>
+  <updated>2019-10-12T01:57:58Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -105,6 +105,14 @@
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/011_collecting_objects.html" />
     <updated>2019-09-19T00:00:00+03:00</updated>
+  </entry>
+  
+  <entry>
+    <title>Caching for objects</title>
+    <id>https://pragmaticobjects.com/chapters/012_caching_for_objects</id>
+    <link rel="alternate" type="text/html"
+          href="https://pragmaticobjects.com/chapters/012_caching_for_objects.html" />
+    <updated>2019-10-11T00:00:00+03:00</updated>
   </entry>
   
 </feed>

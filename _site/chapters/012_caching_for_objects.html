@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Caching for objects</title>
+    <meta name="description"
+          content="Elegant objects caching and memoization done right">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Caching for objects</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Caching for objects'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>Some time ago, in the post dedicated to <a href="008_things-i-would-never-place-in-decorators.html">possible pitfalls of decorating objects</a>, I mentioned that:</p>
+
+<blockquote>
+  <p>In my opinion, caching and memoization in Elegant objects is one of the most difficult subjects, which has not been fully revealed by Yegor in his books and blogposts. There are more caveats that may seem to at first glance.</p>
+</blockquote>
+
+<p>It’s time to elaborate on this subject in detail.</p>
+
+<h2 id="existing-solutions">Existing solutions</h2>
+
+<p>Currently, Elegant Objects ecosystem provides various tools for caching certain calculations made inside objects. There is <a href="https://aspects.jcabi.com/annotation-cacheable.html">jcabi-aspects</a>, which gives simple aspects for caching methods results:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Resource</span> <span class="o">{</span>
+  <span class="nd">@Cacheable</span><span class="o">(</span><span class="n">lifetime</span> <span class="o">=</span> <span class="mi">5</span><span class="o">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)</span>
+  <span class="kd">public</span> <span class="n">String</span> <span class="nf">load</span><span class="o">(</span><span class="n">URL</span> <span class="n">url</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">().</span><span class="na">getContent</span><span class="o">();</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Also there is <a href="https://github.com/yegor256/cactoos">Cactoos</a> which does the similar thing by means of so-called <a href="https://www.yegor256.com/2017/10/17/lazy-loading-caching-sticky-cactoos.html">“sticky” decorators</a> (notice <code class="highlighter-rouge">StickyScalar</code> in the example below):</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">Encrypted5</span> <span class="kd">implements</span> <span class="n">Encrypted</span> <span class="o">{</span>
+  <span class="kd">private</span> <span class="kd">final</span> <span class="n">IoCheckedScalar</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">text</span><span class="o">;</span>
+
+  <span class="n">Encrypted5</span><span class="o">(</span><span class="n">Scalar</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">source</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">text</span> <span class="o">=</span> <span class="k">new</span> <span class="n">IoCheckedScalar</span><span class="o">&lt;&gt;(</span>
+      <span class="k">new</span> <span class="n">StickyScalar</span><span class="o">&lt;&gt;(</span><span class="n">source</span><span class="o">)</span>
+    <span class="o">);</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Both ways are insufficient, if you ask me. There are certain limitations which these tools bring up — rather crucial ones.</p>
+
+<h2 id="what-kind-of-limitations">What kind of limitations?</h2>
+
+<p>In short, each caching and/or memoization act is always based on some mutable state. And each mutable state, while being a part of the <a href="010_objects_and_data.html#objects-vs-data">data world</a>, is a matter of <a href="https://en.wikipedia.org/wiki/ACID">ACID</a>. Neither jcabi-aspects, nor Cactoos takes this into account.</p>
+
+<p>Lets assume some system which operates with users:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Whatever code works with the user, it will expect certain guarantees from <code class="highlighter-rouge">User</code> implementations. For example, the calling object, which stands for some transaction, may call the <code class="highlighter-rouge">name()</code> method several times, and expect it to return the same string:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">Purchase</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">recipient</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Address</span> <span class="n">deliveryAddress</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">DeliveryService</span> <span class="n">service</span><span class="o">;</span>
+
+    <span class="c1">// Ctor</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">make</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">service</span><span class="o">.</span><span class="na">deliver</span><span class="o">(</span>
+            <span class="n">recipient</span><span class="o">.</span><span class="na">name</span><span class="o">(),</span> <span class="n">address</span><span class="o">.</span><span class="na">address</span><span class="o">()</span>
+        <span class="o">)</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="k">new</span> <span class="nf">PurchaseDelivery</span><span class="o">(</span>
+    <span class="k">new</span> <span class="nf">User</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">),</span>
+    <span class="k">new</span> <span class="nf">AddressForUser</span><span class="o">(</span>
+        <span class="k">new</span> <span class="nf">User</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">)</span>
+    <span class="o">),</span>
+    <span class="k">new</span> <span class="nf">Fedex</span><span class="o">()</span>
+<span class="o">).</span><span class="na">make</span><span class="o">()</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">Purchase</code> is a composite object, composed from smaller ones. <code class="highlighter-rouge">User</code> takes part in this composite multiple times. If <code class="highlighter-rouge">new User("skapral").name()</code> returned different names to <code class="highlighter-rouge">AddressForUser</code> and for recipient, it could lead to unpredictable effects, like incorrectly delivered package.</p>
+
+<p>For various implementations of user, this consistency is easy to achieve:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">StaticUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">StaticUser</span><span class="o">(</span><span class="n">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p><code class="highlighter-rouge">StaticUser</code> above has fixed name, so no matter how much and where you call it for <code class="highlighter-rouge">name()</code>, result will always be the same. But objects are rarely that simple. Check another implementation:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+            <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+            <span class="k">return</span> <span class="n">self</span><span class="o">.</span><span class="na">login</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>This one extracts user name from GitHub account, using <a href="https://github.com/jcabi/jcabi-github">jcabi-github</a> library.
+However, theoretically, GitHub user can change its name at any time, even in the middle of your application’s transaction. So there is no such level of consistency, as for <code class="highlighter-rouge">StaticUser</code>. Calling method <code class="highlighter-rouge">GithubUser::name</code> multiple times, you can get different names.</p>
+
+<p>In the world of data, this issue has the name “dirty read”. <code class="highlighter-rouge">GithubUser</code>, while being a part of your application’s transaction, can read updates, made by outer world (GitHub). Sometimes such level of isolation can be sufficient,
+but in majority of cases it is not.</p>
+
+<p>Theoretically, we can compensate this effect by enabling method caching for <code class="highlighter-rouge">name()</code> by using <code class="highlighter-rouge">@Cacheable</code> jcabi-aspects annotation:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="nd">@Cacheable</span><span class="o">(</span><span class="n">lifetime</span> <span class="o">=</span> <span class="mi">5</span><span class="o">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+            <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+            <span class="k">return</span> <span class="n">self</span><span class="o">.</span><span class="na">login</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>But on the second thought, it is not a solution. First, because nobody said that 5 seconds is sufficient — your application’s transaction may last for longer time. Second, even if we make lifetime infinite, it’d just mean that memoized value of <code class="highlighter-rouge">GithubUser</code> will be stored forever inside the instance of the object. And that in turn means that once <code class="highlighter-rouge">GithubUser</code> took participation in one transaction, the cached name becomes stalled for the next one. Which is deadly.</p>
+
+<p>The same problem lies in design of Cactoos. If we dig inside internals of Cactoos and find a place where it does memoization of <code class="highlighter-rouge">StickyScalar</code>’s calculations, we’ll find this <code class="highlighter-rouge">StickyBiFunc</code> class:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="nc">StickyBiFunc</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">BiFunc</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">BiFunc</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="n">func</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Map</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">&gt;,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="n">cache</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">size</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">StickyBiFunc</span><span class="o">(</span><span class="kd">final</span> <span class="n">BiFunc</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="n">fnc</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">(</span><span class="n">fnc</span><span class="o">,</span> <span class="n">Integer</span><span class="o">.</span><span class="na">MAX_VALUE</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="nf">StickyBiFunc</span><span class="o">(</span><span class="kd">final</span> <span class="n">BiFunc</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">,</span> <span class="n">Z</span><span class="o">&gt;</span> <span class="n">fnc</span><span class="o">,</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">max</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">func</span> <span class="o">=</span> <span class="n">fnc</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">cache</span> <span class="o">=</span> <span class="k">new</span> <span class="n">LinkedHashMap</span><span class="o">&lt;&gt;(</span><span class="mi">0</span><span class="o">);</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">size</span> <span class="o">=</span> <span class="n">max</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Z</span> <span class="nf">apply</span><span class="o">(</span><span class="kd">final</span> <span class="n">X</span> <span class="n">first</span><span class="o">,</span> <span class="kd">final</span> <span class="n">Y</span> <span class="n">second</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+        <span class="kd">final</span> <span class="n">Map</span><span class="o">.</span><span class="na">Entry</span><span class="o">&lt;</span><span class="n">X</span><span class="o">,</span> <span class="n">Y</span><span class="o">&gt;</span> <span class="n">key</span> <span class="o">=</span> <span class="k">new</span> <span class="n">MapEntry</span><span class="o">&lt;&gt;(</span><span class="n">first</span><span class="o">,</span> <span class="n">second</span><span class="o">);</span>
+        <span class="k">while</span> <span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">size</span><span class="o">()</span> <span class="o">&gt;</span> <span class="k">this</span><span class="o">.</span><span class="na">size</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">remove</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">keySet</span><span class="o">().</span><span class="na">iterator</span><span class="o">().</span><span class="na">next</span><span class="o">());</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(!</span><span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">containsKey</span><span class="o">(</span><span class="n">key</span><span class="o">))</span> <span class="o">{</span>
+            <span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="k">this</span><span class="o">.</span><span class="na">func</span><span class="o">.</span><span class="na">apply</span><span class="o">(</span><span class="n">first</span><span class="o">,</span> <span class="n">second</span><span class="o">));</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">cache</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Notice two things about it:</p>
+
+<ul>
+  <li>its <code class="highlighter-rouge">cache</code> attribute is hardwired to <code class="highlighter-rouge">LinkedHashMap</code> instance straight inside constructor. There is no way of providing a map from outside.</li>
+  <li>its <code class="highlighter-rouge">cache</code> contents cannot be invalidated on demand. There is a logic for purging cache contents to prevent it from growing infinitely (check the <code class="highlighter-rouge">while</code> loop inside), but it is not enough.</li>
+</ul>
+
+<p>Summing up these two facts leads us to conclusion that there is no way to purify, to <em>invalidate</em> the cache located inside <code class="highlighter-rouge">StickyBiFunc</code>, which in turn potentially leads us to same problem of stalled reads from cache between transactions.</p>
+
+<h2 id="reproducability">Reproducability</h2>
+
+<p>Another thing which I don’t like about existing caching solutions is the absence of reproducability. This problem can be illustrated with the following code snippet:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">GithubUser</span><span class="o">(</span><span class="s">"abcdef123456"</span><span class="o">).</span><span class="na">name</span><span class="o">();</span> <span class="c1">// cache missed, call to Github API will be made</span>
+<span class="k">new</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="s">"abcdef123456"</span><span class="o">).</span><span class="na">name</span><span class="o">();</span> <span class="c1">// cache missed again! The object is different, while its identity is the same to the previous instance.</span>
+</code></pre></div></div>
+
+<p>If I have an instance of <code class="highlighter-rouge">GithubUser</code>, annotated with <code class="highlighter-rouge">@Cacheable</code> annotation, its cache contents are melded to the instance of <code class="highlighter-rouge">GithubUser</code>.
+And if I reinstantiate the <code class="highlighter-rouge">GithubUser</code> with the same <code class="highlighter-rouge">githubApi</code> token, cache contents won’t be reused for new instance. New instance will have its own cache. 
+Which is suboptimal: two <code class="highlighter-rouge">GithubUser</code> with same <code class="highlighter-rouge">githubApi</code> will be <a href="009_equivalence_101.html">equivalent</a>, their behavior will be exactly the same, so reusing cached value for both of them makes sense.</p>
+
+<h2 id="alternative">Alternative</h2>
+
+<p>Lets introduce a separate contract for cache:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Memory</span> <span class="o">{</span>
+    <span class="o">&lt;</span><span class="n">S</span><span class="o">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">T</span> <span class="nf">memoizedCalculation</span><span class="o">(</span><span class="n">S</span> <span class="n">source</span><span class="o">,</span> <span class="n">Object</span> <span class="n">key</span><span class="o">,</span> <span class="n">Supplier</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">calculation</span><span class="o">);</span>
+    <span class="kt">void</span> <span class="nf">reset</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>This is the place where we will keep the cache records. Every calculation, that is supposed to be cached, we wrap up by calling <code class="highlighter-rouge">memoizedCalculation</code> method. The pair of <code class="highlighter-rouge">[source, key]</code> will be the cache key, by which memoized values will be resolved inside <code class="highlighter-rouge">Memory</code> instances. And in order to invalidate the cache, there is <code class="highlighter-rouge">reset()</code> method.</p>
+
+<p>By implementing <code class="highlighter-rouge">Memory</code>, we may introduce different sorts of cache storages. Below is the example of a simple cache, which will store memoized values inside <code class="highlighter-rouge">ConcurrentHashMap</code>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MemoryCHM</span> <span class="kd">implements</span> <span class="n">Memory</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">ConcurrentHashMap</span> <span class="n">memoizedObjects</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">MemoryCHM</span><span class="o">(</span><span class="n">ConcurrentHashMap</span> <span class="n">memoizedObjects</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">memoizedObjects</span> <span class="o">=</span> <span class="n">memoizedObjects</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="o">&lt;</span><span class="n">S</span><span class="o">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Calculation</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="nf">memoizedCalculation</span><span class="o">(</span><span class="n">S</span> <span class="n">that</span><span class="o">,</span> <span class="n">Object</span> <span class="n">key</span><span class="o">,</span> <span class="n">Supplier</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">calculation</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">memoizedObjects</span><span class="o">.</span><span class="na">computeIfAbsent</span><span class="o">(</span>
+            <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">that</span><span class="o">,</span> <span class="n">key</span><span class="o">),</span>
+            <span class="n">mref</span> <span class="o">-&gt;</span> <span class="n">calculation</span><span class="o">.</span><span class="na">apply</span><span class="o">().</span>
+        <span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">clean</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">memoizedObjects</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Theoretically, <code class="highlighter-rouge">Memory</code> could be implemented in various ways, providing different kinds of storages with different characteristics for memoized values. It can be implemented around HTTP session storage (for session-scoped values).
+Or around <code class="highlighter-rouge">ThreadLocal</code> (for memoized values associated with certain thread). One can implement it around a file or database (and get persistent cache storage),
+or store the memoized values in distributed caching solutions, like <a href="https://www.ehcache.org/">Ehcache</a> or <a href="https://hazelcast.org/">Hazelcast</a>.</p>
+
+<h2 id="tier-1-method-level-caching">Tier 1: method-level caching</h2>
+
+<p>This is pretty straightforward. Provided that you have a method, result of which needs to be cached, you should:</p>
+<ul>
+  <li>add a <code class="highlighter-rouge">Memory</code> attribute to your object</li>
+  <li>wrap up calculation by means of calling <code class="highlighter-rouge">Memory::memoizedCalculation</code></li>
+</ul>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Memory</span> <span class="n">memory</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">,</span> <span class="n">Memory</span> <span class="n">memory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">memory</span> <span class="o">=</span> <span class="n">memory</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">memory</span><span class="o">.</span><span class="na">memoizedCalculation</span><span class="o">(</span>
+            <span class="k">this</span><span class="o">,</span>
+            <span class="s">"name"</span><span class="o">,</span>
+            <span class="o">()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+                    <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+                    <span class="k">return</span> <span class="n">self</span><span class="o">.</span><span class="na">login</span><span class="o">();</span>
+                <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">)</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>First argument of <code class="highlighter-rouge">memoizedCalculation</code> in most cases should always be <code class="highlighter-rouge">this</code>. The trick here is in <a href="009_equivalence_101.html">objects equivalence</a>.
+Even if we reinstantiate GithubUser anew with the same pair of <code class="highlighter-rouge">[apiToken, memory]</code>, the cache state will preserve:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ConcurrentHashMap chm = new ConcurrentHashMap();
+new GuthubUser("abcdef123456", new MemoryCHM(chm)).name(); // cache warmup, call to Github API will be made
+new GuthubUser("abcdef123456", new MemoryCHM(chm)).name(); // cache hits here, memoized value will be returned.
+</code></pre></div></div>
+
+<p>Note however that since Java doesn’t provide equivalence logic out of the box, the trick above will work only if you instrument your classes by <a href="https://github.com/pragmatic-objects/oo-equivalence/">OO-Equivalence</a>.</p>
+
+<p>Slightly improved <code class="highlighter-rouge">Memory</code> and <code class="highlighter-rouge">MemoryCHM</code> implementations you can find in the project <a href="https://github.com/pragmatic-objects/oo-memoized/">OO-Memoized</a>.</p>
+
+<h2 id="tier-2-object-level-caching">Tier 2: object-level caching</h2>
+
+<p>For one-method function-like objects tier 1 would be sufficient. But objects can have more than one methods. Lets imagine that GithubUser, along with name, provides also a list of user’s emails:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+    <span class="n">Iterable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">emails</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+            <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+            <span class="k">return</span> <span class="n">self</span><span class="o">.</span><span class="na">login</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">Iterable</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="nf">emails</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+            <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+            <span class="k">return</span> <span class="n">self</span><span class="o">.</span><span class="na">emails</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Such straight implementation of <code class="highlighter-rouge">GithubUser</code> is deadly suboptimal. On each method call it does a separate call to the Github API, just for the sake of extracting a small piece of data. And even if we cache <code class="highlighter-rouge">name()</code> and <code class="highlighter-rouge">emails()</code> on methods level, there still can be at most two API calls per transaction — one for <code class="highlighter-rouge">name()</code> call, one for <code class="highlighter-rouge">emails()</code>.</p>
+
+<p>There should be a way to fixate the whole user object at the first call to Github API. And there is a way for it.</p>
+
+<p>First, lets introduce new contract:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Inference</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="n">T</span> <span class="nf">inferredInstance</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Implementors of <code class="highlighter-rouge">Inference</code> will <em>infer</em> the object’s behavior at runtime. To use that with user, we need inferred user’s implementation:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserInferred</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Inference</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">inference</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">UserInferred</span><span class="o">(</span><span class="n">Inference</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="n">inference</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">inference</span> <span class="o">=</span> <span class="n">inference</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">inference</span><span class="o">.</span><span class="na">inferredInstance</span><span class="o">().</span><span class="na">name</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">Iterable</span> <span class="nf">emails</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">inference</span><span class="o">.</span><span class="na">inferredInstance</span><span class="o">().</span><span class="na">emails</span><span class="o">();</span>
+    <span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>What’s the trick with these inferences? The trick is that we can decorate them like any other objects. Here is the decorator, which is able to memoize inferred instance in <code class="highlighter-rouge">Memory</code>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MemoizedInference</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">Inference</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Inference</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">inference</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">Memory</span> <span class="n">memory</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">MemoizedInference</span><span class="o">(</span><span class="n">Inference</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">inference</span><span class="o">,</span> <span class="n">Memory</span> <span class="n">memory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">inference</span> <span class="o">=</span> <span class="n">inference</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">memory</span> <span class="o">=</span> <span class="n">memory</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">T</span> <span class="nf">inferredInstance</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">memory</span>
+            <span class="o">.</span><span class="na">memoizedCalculation</span><span class="o">(</span><span class="k">this</span><span class="o">,</span> <span class="s">"inferredObject"</span><span class="o">,</span> <span class="nl">inference:</span><span class="o">:</span><span class="n">inferredInstance</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">calculate</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Now, if we wrap Github API call to the inference, we can memoize its result pretty easily:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">GithubUserInference</span> <span class="kd">implements</span> <span class="n">Inference</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUserInference</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">User</span> <span class="nf">inferredInstance</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="n">Github</span> <span class="n">github</span> <span class="o">=</span> <span class="k">new</span> <span class="n">RtGithub</span><span class="o">(</span><span class="n">apiToken</span><span class="o">);</span>
+            <span class="n">com</span><span class="o">.</span><span class="na">jcabi</span><span class="o">.</span><span class="na">github</span><span class="o">.</span><span class="na">User</span> <span class="n">self</span> <span class="o">=</span> <span class="n">github</span><span class="o">.</span><span class="na">users</span><span class="o">().</span><span class="na">self</span><span class="o">();</span>
+            <span class="k">return</span> <span class="k">new</span> <span class="nf">StaticUser</span><span class="o">(</span><span class="n">self</span><span class="o">.</span><span class="na">login</span><span class="o">(),</span> <span class="n">self</span><span class="o">.</span><span class="na">emails</span><span class="o">().</span><span class="na">iterate</span><span class="o">());</span>    
+        <span class="o">}</span> <span class="k">catch</span><span class="o">(</span><span class="n">IOException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="n">ex</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">extends</span> <span class="n">UserInferred</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">,</span> <span class="n">Memory</span> <span class="n">memory</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span>
+            <span class="k">new</span> <span class="nf">MemoizedInference</span><span class="o">(</span>
+                <span class="k">new</span> <span class="nf">GithubUserInference</span><span class="o">(</span><span class="n">apiToken</span><span class="o">),</span>
+                <span class="n">memory</span>
+            <span class="o">)</span>
+        <span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>At the end, we are getting <code class="highlighter-rouge">GithubUser</code> which does memoization of Github API call one time per the whole thing:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ConcurrentHashMap</span> <span class="n">chm</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConcurrentHashMap</span><span class="o">();</span>
+<span class="k">new</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="s">"fc2b1e0be4f9973d6590e7e695680fe270bc11c8"</span><span class="o">,</span> <span class="k">new</span> <span class="n">MemoryCHM</span><span class="o">(</span><span class="n">chm</span><span class="o">)).</span><span class="na">name</span><span class="o">();</span> <span class="c1">// cache missed, Github API is called here</span>
+<span class="k">new</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="s">"fc2b1e0be4f9973d6590e7e695680fe270bc11c8"</span><span class="o">,</span> <span class="k">new</span> <span class="n">MemoryCHM</span><span class="o">(</span><span class="n">chm</span><span class="o">)).</span><span class="na">emails</span><span class="o">();</span> <span class="c1">// cache hit, call is delegated to memoized instance of user</span>
+</code></pre></div></div>
+
+<p>Of course, there is plenty of boilerplate for all these inferences and inferred implementations. To eliminate it, <a href="https://github.com/pragmatic-objects/oo-inference">OO-Inference</a> was introduced.
+It is annotation generator, which generates sources for all the stuff automatically: all you need is just to provide an <code class="highlighter-rouge">Inference</code> implementation.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
