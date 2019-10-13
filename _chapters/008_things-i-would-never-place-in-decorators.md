@@ -51,40 +51,61 @@ class ComparableUser implements User {
 ```
 
 The problem is: you don't know what `User` instance encapsulates. If it is just a simplest implementation with fixed data inside, like `FixedUser`, then it is okay to pass it to `ComparableUser::equals`. But what if 
-there is another `User` implementation. Like `TwitterUser`, which extracts user's name by calling Twitter API in `name()` method. Calling third party remote API is quite heavy operation --- how would `HashMap` with `ComparableUser` key behave? Also there is no guarantee that one day `TwitterUser::name()` won't return us some other name for the user and break the consistency of `equals` result.
+there is another `User` implementation? Like `GithubUser`, which extracts user's name by calling Github API in `name()` method:
+
+```java
+class GithubUser implements User {
+    private final String apiToken;
+
+    public GithubUser(String apiToken) {
+        this.apiToken = apiToken;
+    }
+
+    public final String name() {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create("https://api.github.com/user"))
+            .header("Authorization", "token " + apiToken)
+            .build();
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+              .thenApply(HttpResponse::body)
+              .thenApply(resp -> JsonPath.read(resp, "login").toString())
+              .join();
+    }
+}
+```
+
+
+Calling third party remote API is quite heavy operation --- how would `HashMap` with `ComparableUser` key behave? Also there is no guarantee that one day `GithubUser::name()` won't return us some other name for the user and break the consistency of `equals` result.
+
+Alternative? First of all, embrace that there is [no such thing as equality for objects](004_object_equivalence.html). Second --- admit, that all objects have [equivalence](009_equivalence_101.html) trait, and let [OO-Equivalence](https://github.com/pragmatic-objects/oo-equivalence) generate it for you.
 
 ## Caching and memoization
 
 In my opinion, caching and memoization in Elegant objects is one of the most difficult subjects, which has not been fully revealed by Yegor in his books and blogposts. There are more caveats 
-that may seem to at first glance. In this post, I'll concentrate on the caching decorators, introduced in [Cactoos](https://github.com/yegor256/cactoos) framework, and described in [this](https://www.yegor256.com/2017/10/17/lazy-loading-caching-sticky-cactoos.html) post.
+that may seem to at first glance. [Caching for objects](012_caching_for_objects.html) is elaborated in a separate post.
 
-Consider `TwitterUser` from the previous chapter. In its `name` implemetation, it is calling Twitter API for getting the user's name for some business purposes. Twitter API call is too heavy stuff to make it on every call to `name()`,
-and it is logical to preserve the result for certain period once it was obtained. On the first glance, it might be tempting to write `CachingUser` decorator for such purposes:
+Consider `GithubUser` from the previous chapter. In its `name` implemetation, it is calling Github API for getting the user's name for some business purposes. Github API call is too heavy stuff to make it on every call to `name()`,
+and it is logical to preserve the result for certain period once it was obtained. On the first glance, it might be tempting to write `CachingUser` decorator for such purposes.
 
 ```java
 class CachedUser implements User {
     private final User user;
-    private String name;
  
     public CachedUser(User user) {
         this.user = user;
     }
     
     @Override
+    @Cacheable(lifetime = 15, unit = TimeUnit.SECONDS)
     public String name() {
-        if(Objects.nonNull(name)) {
-            name = callTwitter()
-        }
-        return name;
+        return user.name();
     }
 }
 ```
 
-I intentionally made this caching decorator thread-unsafe and [mutable](https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html) to keep it as simple as possible.
-Mutability and thread safety are irrelevant in this example.
-
 The usage of such decorator is straight-forward. Once I want to preserve results provided 
-by instance of `TwitterUser`, I wrap it to `CachedUser` and call it instead. Simple as it sounds.
+by instance of `GithubUser`, I wrap it to `CachedUser` and call it instead. Simple as it sounds.
 
 However, if we take into account the calling side, it becomes more cumbersome. Consider some imaginery `UserTransaction` class, 
 which encapsulates a complex set of actions based on user name to put some money on the user's account:
@@ -119,7 +140,7 @@ new UserTransaction(
 
 new UserTransaction(
     new CachedUser(
-        new TwitterUser(...)
+        new GithubUser(...)
     )
 );
 ```
@@ -128,13 +149,13 @@ new UserTransaction(
 
 ```java
 new UserTransaction(
-    new TwitterUser(...)
+    new GithubUser(...)
 );
 ```
 
 The second problem with caching decorators is the fact that all caches and memoization usually has certain scope. 
-Consider `UserTransaction` with cached twitter user inside. What will be if we call its `submit()` method ten times in a row, and somewhere in the middle user will change its name?
-In theory, we'd want to get this update in the beginning of a new `UserTransaction::submit()` call. Practically, the old name would stay cached until we reinstantiate the `CachedUser`. Not good.
+Consider `UserTransaction` with cached github user inside. What will be if we call its `submit()` method ten times in a row, and somewhere in the middle user will change its name in Github account profile?
+In theory, we'd want to get this update in the beginning of a new `UserTransaction::submit()` call. Practically, the old name would stay cached until we reinstantiate the `CachedUser`, or its cache lifetime is over. Not good.
 
 And the third problem is: nothing prevents us from instantiating this useless object, which will perform badly and obtain too much memory for nothing:
 
@@ -206,13 +227,13 @@ class ThreadSafeVisitors implements Visitors {
 But straight way is not always the suitable one, especially when it is about thread safety. This implementation will perform much worse then the previous one, based on atomic integer, because of suboptimally-placed synchronization barriers. We could try making thread safe decorator by means of some reentrant locks, but it won't be as straight as the implementation based on `AtomicInteger`.
 
 It's not the only concern here. The most crucial question is: why we need to introduce this complexity? For what purpose? If we think more about the purpose for the class to be thread safe, we'll realise that thread safety is characteristic, demanded by the calling side.
-It's client code that is calling `Visitors` from many threads. So, if we define `Visitors` as attribute of a class that calls it from several threads and expects it to be thread-safe, doesn't it mean that according to [Liskov Substitution principle]() all implementations of `Visitors` must be thread safe, without exceptions? Do we really need to make this trait to be outlined in decorator? I see no point in it.
+It's client code that is calling `Visitors` from many threads. So, if we define `Visitors` as attribute of a class that calls it from several threads and expects it to be thread-safe, doesn't it mean that according to [Liskov Substitution principle](https://en.wikipedia.org/wiki/Liskov_substitution_principle) all implementations of `Visitors` must be thread safe, without exceptions? Do we really need to make this trait to be outlined in decorator? I see no point in it.
 
 ## Logging/Tracing
 
 Logging decorators were proposed in comments to the following [post](https://www.yegor256.com/2019/03/19/logging-without-static-logger.html). And in my opinion it is very controversial idea.
 
-Lets assume `User` interface and `TwitterUser` implementation again. We want to write `LoggedUser` decorator for it. What would we actually be able to log there?
+Lets assume `User` interface and `GithubUser` implementation again. We want to write `LoggedUser` decorator for it. What would we actually be able to log there?
 
 ```java
 class LoggedUser implements User {
@@ -231,7 +252,7 @@ class LoggedUser implements User {
 }
 ```
 
-Only the user's name? Not much. What such log would give to us? Nothing. At the same time, if we introduced logging straight inside `TwitterUser`, we'd be pretty easily able to log the request to Twitter API with all its headers, URL and input data, and response from it, with status code, headers and exact body. If `TwitterUser` had a caching functionality inside, we'd be able also to trace the fact whether the user's name was obtained for cache or from API response. That would be indeed the informative and useful log.
+At the context of `LoggedUser` there is only the user's name, available for logging? Not much. What such log would give to us? Nothing. At the same time, if we introduced logging straight inside `GithubUser` we'd be pretty easily able to log the request to API with all its headers, URL and input data, and response from it, with status code, headers and exact body. If `GithubUser` had a caching functionality inside, we'd be able also to trace the fact whether the user's name was obtained for cache or from API response. That would be indeed the informative and useful log.
 
 ## To sum up
 

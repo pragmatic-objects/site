@@ -68,39 +68,58 @@ tempting it is.</p>
 </code></pre></div></div>
 
 <p>The problem is: you don’t know what <code class="highlighter-rouge">User</code> instance encapsulates. If it is just a simplest implementation with fixed data inside, like <code class="highlighter-rouge">FixedUser</code>, then it is okay to pass it to <code class="highlighter-rouge">ComparableUser::equals</code>. But what if 
-there is another <code class="highlighter-rouge">User</code> implementation. Like <code class="highlighter-rouge">TwitterUser</code>, which extracts user’s name by calling Twitter API in <code class="highlighter-rouge">name()</code> method. Calling third party remote API is quite heavy operation — how would <code class="highlighter-rouge">HashMap</code> with <code class="highlighter-rouge">ComparableUser</code> key behave? Also there is no guarantee that one day <code class="highlighter-rouge">TwitterUser::name()</code> won’t return us some other name for the user and break the consistency of <code class="highlighter-rouge">equals</code> result.</p>
+there is another <code class="highlighter-rouge">User</code> implementation? Like <code class="highlighter-rouge">GithubUser</code>, which extracts user’s name by calling Github API in <code class="highlighter-rouge">name()</code> method:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GithubUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">String</span> <span class="n">apiToken</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">GithubUser</span><span class="o">(</span><span class="n">String</span> <span class="n">apiToken</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">apiToken</span> <span class="o">=</span> <span class="n">apiToken</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">final</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
+        <span class="n">HttpClient</span> <span class="n">client</span> <span class="o">=</span> <span class="n">HttpClient</span><span class="o">.</span><span class="na">newHttpClient</span><span class="o">();</span>
+        <span class="n">HttpRequest</span> <span class="n">request</span> <span class="o">=</span> <span class="n">HttpRequest</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">()</span>
+            <span class="o">.</span><span class="na">uri</span><span class="o">(</span><span class="n">URI</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"https://api.github.com/user"</span><span class="o">))</span>
+            <span class="o">.</span><span class="na">header</span><span class="o">(</span><span class="s">"Authorization"</span><span class="o">,</span> <span class="s">"token "</span> <span class="o">+</span> <span class="n">apiToken</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+        <span class="k">return</span> <span class="n">client</span><span class="o">.</span><span class="na">sendAsync</span><span class="o">(</span><span class="n">request</span><span class="o">,</span> <span class="n">HttpResponse</span><span class="o">.</span><span class="na">BodyHandlers</span><span class="o">.</span><span class="na">ofString</span><span class="o">())</span>
+              <span class="o">.</span><span class="na">thenApply</span><span class="o">(</span><span class="nl">HttpResponse:</span><span class="o">:</span><span class="n">body</span><span class="o">)</span>
+              <span class="o">.</span><span class="na">thenApply</span><span class="o">(</span><span class="n">resp</span> <span class="o">-&gt;</span> <span class="n">JsonPath</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">resp</span><span class="o">,</span> <span class="s">"login"</span><span class="o">).</span><span class="na">toString</span><span class="o">())</span>
+              <span class="o">.</span><span class="na">join</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Calling third party remote API is quite heavy operation — how would <code class="highlighter-rouge">HashMap</code> with <code class="highlighter-rouge">ComparableUser</code> key behave? Also there is no guarantee that one day <code class="highlighter-rouge">GithubUser::name()</code> won’t return us some other name for the user and break the consistency of <code class="highlighter-rouge">equals</code> result.</p>
+
+<p>Alternative? First of all, embrace that there is <a href="004_object_equivalence.html">no such thing as equality for objects</a>. Second — admit, that all objects have <a href="009_equivalence_101.html">equivalence</a> trait, and let <a href="https://github.com/pragmatic-objects/oo-equivalence">OO-Equivalence</a> generate it for you.</p>
 
 <h2 id="caching-and-memoization">Caching and memoization</h2>
 
 <p>In my opinion, caching and memoization in Elegant objects is one of the most difficult subjects, which has not been fully revealed by Yegor in his books and blogposts. There are more caveats 
-that may seem to at first glance. In this post, I’ll concentrate on the caching decorators, introduced in <a href="https://github.com/yegor256/cactoos">Cactoos</a> framework, and described in <a href="https://www.yegor256.com/2017/10/17/lazy-loading-caching-sticky-cactoos.html">this</a> post.</p>
+that may seem to at first glance. <a href="012_caching_for_objects.html">Caching for objects</a> is elaborated in a separate post.</p>
 
-<p>Consider <code class="highlighter-rouge">TwitterUser</code> from the previous chapter. In its <code class="highlighter-rouge">name</code> implemetation, it is calling Twitter API for getting the user’s name for some business purposes. Twitter API call is too heavy stuff to make it on every call to <code class="highlighter-rouge">name()</code>,
-and it is logical to preserve the result for certain period once it was obtained. On the first glance, it might be tempting to write <code class="highlighter-rouge">CachingUser</code> decorator for such purposes:</p>
+<p>Consider <code class="highlighter-rouge">GithubUser</code> from the previous chapter. In its <code class="highlighter-rouge">name</code> implemetation, it is calling Github API for getting the user’s name for some business purposes. Github API call is too heavy stuff to make it on every call to <code class="highlighter-rouge">name()</code>,
+and it is logical to preserve the result for certain period once it was obtained. On the first glance, it might be tempting to write <code class="highlighter-rouge">CachingUser</code> decorator for such purposes.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">CachedUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="n">String</span> <span class="n">name</span><span class="o">;</span>
  
     <span class="kd">public</span> <span class="nf">CachedUser</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">.</span><span class="na">user</span> <span class="o">=</span> <span class="n">user</span><span class="o">;</span>
     <span class="o">}</span>
     
     <span class="nd">@Override</span>
+    <span class="nd">@Cacheable</span><span class="o">(</span><span class="n">lifetime</span> <span class="o">=</span> <span class="mi">15</span><span class="o">,</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">)</span>
     <span class="kd">public</span> <span class="n">String</span> <span class="nf">name</span><span class="o">()</span> <span class="o">{</span>
-        <span class="k">if</span><span class="o">(</span><span class="n">Objects</span><span class="o">.</span><span class="na">nonNull</span><span class="o">(</span><span class="n">name</span><span class="o">))</span> <span class="o">{</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="n">callTwitter</span><span class="o">()</span>
-        <span class="o">}</span>
-        <span class="k">return</span> <span class="n">name</span><span class="o">;</span>
+        <span class="k">return</span> <span class="n">user</span><span class="o">.</span><span class="na">name</span><span class="o">();</span>
     <span class="o">}</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>I intentionally made this caching decorator thread-unsafe and <a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html">mutable</a> to keep it as simple as possible.
-Mutability and thread safety are irrelevant in this example.</p>
-
 <p>The usage of such decorator is straight-forward. Once I want to preserve results provided 
-by instance of <code class="highlighter-rouge">TwitterUser</code>, I wrap it to <code class="highlighter-rouge">CachedUser</code> and call it instead. Simple as it sounds.</p>
+by instance of <code class="highlighter-rouge">GithubUser</code>, I wrap it to <code class="highlighter-rouge">CachedUser</code> and call it instead. Simple as it sounds.</p>
 
 <p>However, if we take into account the calling side, it becomes more cumbersome. Consider some imaginery <code class="highlighter-rouge">UserTransaction</code> class, 
 which encapsulates a complex set of actions based on user name to put some money on the user’s account:</p>
@@ -133,7 +152,7 @@ theoretically get a situation when on step 1 we get banking account by one user�
 
 <span class="k">new</span> <span class="nf">UserTransaction</span><span class="o">(</span>
     <span class="k">new</span> <span class="nf">CachedUser</span><span class="o">(</span>
-        <span class="k">new</span> <span class="nf">TwitterUser</span><span class="o">(...)</span>
+        <span class="k">new</span> <span class="nf">GithubUser</span><span class="o">(...)</span>
     <span class="o">)</span>
 <span class="o">);</span>
 </code></pre></div></div>
@@ -141,13 +160,13 @@ theoretically get a situation when on step 1 we get banking account by one user�
 <p>…but can’t expect the same from this one, while nothing prevents us from instantiating it:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">new</span> <span class="n">UserTransaction</span><span class="o">(</span>
-    <span class="k">new</span> <span class="nf">TwitterUser</span><span class="o">(...)</span>
+    <span class="k">new</span> <span class="nf">GithubUser</span><span class="o">(...)</span>
 <span class="o">);</span>
 </code></pre></div></div>
 
 <p>The second problem with caching decorators is the fact that all caches and memoization usually has certain scope. 
-Consider <code class="highlighter-rouge">UserTransaction</code> with cached twitter user inside. What will be if we call its <code class="highlighter-rouge">submit()</code> method ten times in a row, and somewhere in the middle user will change its name?
-In theory, we’d want to get this update in the beginning of a new <code class="highlighter-rouge">UserTransaction::submit()</code> call. Practically, the old name would stay cached until we reinstantiate the <code class="highlighter-rouge">CachedUser</code>. Not good.</p>
+Consider <code class="highlighter-rouge">UserTransaction</code> with cached github user inside. What will be if we call its <code class="highlighter-rouge">submit()</code> method ten times in a row, and somewhere in the middle user will change its name in Github account profile?
+In theory, we’d want to get this update in the beginning of a new <code class="highlighter-rouge">UserTransaction::submit()</code> call. Practically, the old name would stay cached until we reinstantiate the <code class="highlighter-rouge">CachedUser</code>, or its cache lifetime is over. Not good.</p>
 
 <p>And the third problem is: nothing prevents us from instantiating this useless object, which will perform badly and obtain too much memory for nothing:</p>
 
@@ -215,13 +234,13 @@ In theory, we’d want to get this update in the beginning of a new <code class=
 <p>But straight way is not always the suitable one, especially when it is about thread safety. This implementation will perform much worse then the previous one, based on atomic integer, because of suboptimally-placed synchronization barriers. We could try making thread safe decorator by means of some reentrant locks, but it won’t be as straight as the implementation based on <code class="highlighter-rouge">AtomicInteger</code>.</p>
 
 <p>It’s not the only concern here. The most crucial question is: why we need to introduce this complexity? For what purpose? If we think more about the purpose for the class to be thread safe, we’ll realise that thread safety is characteristic, demanded by the calling side.
-It’s client code that is calling <code class="highlighter-rouge">Visitors</code> from many threads. So, if we define <code class="highlighter-rouge">Visitors</code> as attribute of a class that calls it from several threads and expects it to be thread-safe, doesn’t it mean that according to <a href="">Liskov Substitution principle</a> all implementations of <code class="highlighter-rouge">Visitors</code> must be thread safe, without exceptions? Do we really need to make this trait to be outlined in decorator? I see no point in it.</p>
+It’s client code that is calling <code class="highlighter-rouge">Visitors</code> from many threads. So, if we define <code class="highlighter-rouge">Visitors</code> as attribute of a class that calls it from several threads and expects it to be thread-safe, doesn’t it mean that according to <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov Substitution principle</a> all implementations of <code class="highlighter-rouge">Visitors</code> must be thread safe, without exceptions? Do we really need to make this trait to be outlined in decorator? I see no point in it.</p>
 
 <h2 id="loggingtracing">Logging/Tracing</h2>
 
 <p>Logging decorators were proposed in comments to the following <a href="https://www.yegor256.com/2019/03/19/logging-without-static-logger.html">post</a>. And in my opinion it is very controversial idea.</p>
 
-<p>Lets assume <code class="highlighter-rouge">User</code> interface and <code class="highlighter-rouge">TwitterUser</code> implementation again. We want to write <code class="highlighter-rouge">LoggedUser</code> decorator for it. What would we actually be able to log there?</p>
+<p>Lets assume <code class="highlighter-rouge">User</code> interface and <code class="highlighter-rouge">GithubUser</code> implementation again. We want to write <code class="highlighter-rouge">LoggedUser</code> decorator for it. What would we actually be able to log there?</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">LoggedUser</span> <span class="kd">implements</span> <span class="n">User</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span><span class="o">;</span>
@@ -239,7 +258,7 @@ It’s client code that is calling <code class="highlighter-rouge">Visitors</cod
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>Only the user’s name? Not much. What such log would give to us? Nothing. At the same time, if we introduced logging straight inside <code class="highlighter-rouge">TwitterUser</code>, we’d be pretty easily able to log the request to Twitter API with all its headers, URL and input data, and response from it, with status code, headers and exact body. If <code class="highlighter-rouge">TwitterUser</code> had a caching functionality inside, we’d be able also to trace the fact whether the user’s name was obtained for cache or from API response. That would be indeed the informative and useful log.</p>
+<p>At the context of <code class="highlighter-rouge">LoggedUser</code> there is only the user’s name, available for logging? Not much. What such log would give to us? Nothing. At the same time, if we introduced logging straight inside <code class="highlighter-rouge">GithubUser</code> we’d be pretty easily able to log the request to API with all its headers, URL and input data, and response from it, with status code, headers and exact body. If <code class="highlighter-rouge">GithubUser</code> had a caching functionality inside, we’d be able also to trace the fact whether the user’s name was obtained for cache or from API response. That would be indeed the informative and useful log.</p>
 
 <h2 id="to-sum-up">To sum up</h2>
 
