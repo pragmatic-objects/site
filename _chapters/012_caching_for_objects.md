@@ -431,8 +431,8 @@ At the end, we are getting `GithubUser` which does memoization of Github API cal
 
 ```java
 ConcurrentHashMap chm = new ConcurrentHashMap();
-new GithubUser("fc2b1e0be4f9973d6590e7e695680fe270bc11c8", new MemoryCHM(chm)).name(); // cache missed, Github API is called here
-new GithubUser("fc2b1e0be4f9973d6590e7e695680fe270bc11c8", new MemoryCHM(chm)).emails(); // cache hit, call is delegated to memoized instance of user
+new GithubUser("githubapitoken", new MemoryCHM(chm)).name(); // cache missed, Github API is called here
+new GithubUser("githubapitoken", new MemoryCHM(chm)).emails(); // cache hit, call is delegated to memoized instance of user
 ```
 
 Of course, there is plenty of boilerplate for all these inferences and inferred implementations. To eliminate it, [OO-Inference](https://github.com/pragmatic-objects/oo-inference) was introduced.
