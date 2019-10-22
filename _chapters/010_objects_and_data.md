@@ -166,9 +166,9 @@ While we encapsulate details in code in order to simplify its reuse, constrain i
 
 While we abstract out stable code components from volatile implementations, in a typical data model *everything* is potentially volatile. Almost every business requirement impacts data model of your application. There is just nothing to abstract out. In data world, nobody even tries to fight with volatility because it is meaningless. Instead, they use data migration and schema versioning solutions. More sophisticated are these solutions, less concern there is to people who maintain the model.
 
-While we are concerned about mutability in our code, agitate for purity and statelessness of our components, data models are just mutable by definition. To think more of it, mutability is just innatural for computer programs. We can hide all side effects behind immutable objects or monads but we'll never run away from the fact that in the end, our programm will be compiled to a set of imperative machine instructions, operating with data models in mutable RAM, hard disk, stateful IO.
+While we are concerned about mutability in our code, agitate for purity and statelessness of our components, data models are just mutable by definition. To think more of it, immutability is just innatural for computer programs. We can hide all side effects behind immutable objects or monads but we'll never run away from the fact that in the end, our programm will be compiled to a set of imperative machine instructions, operating with data models in mutable RAM or hard disk, stateful IO.
 
-That's why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. `Customer`, that repeats your data model, causes conflict of these two different worlds: code and data.
+That's why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. `Customer`, that repeats your data model, brings these two different worlds --- code and data --- to conflict.
 
 ## A possible way out of it
 
@@ -191,14 +191,13 @@ class DeliveryToCustomer implements Delivery {
 
 class CustomerBill implements Bill {
     private final CustomerName name;
-    private final CreditCard creditCard;
+    private final CreditCard creditCardInfo;
     private final int amount;
 
     public final void charge() {
         // Obtain the customer's credit card info and charge an amount from it.
     }
 }
-
 
 interface CustomerName {
     String name();
@@ -216,12 +215,19 @@ interface PassportId {
     String passportId();
 }
 
-
 interface Customer extends CustomerName, Address, CreditCard, PassportId {
+}
+
+// This implementation can be substituted in both DeliveryToCustomer (as passportId and address)
+// and CustomerBill (as name and creditCardInfo)
+class SQLCustomer implements Customer {
+    //... typical SQL-speaking implementation
 }
 ```
 
-Notice that `CustomerBill` and `DeliveryToCustomer` doesn't bound directly to `Customer`. Minus two reuse places of `Customer`. Since you don't need fake customers to test `CustomerBill` and `DeliveryToCustomer`, you don't need static implementation of `Customer` either. Minus one more. Theoretically, `Customer` could still be implemented as an SQL-speaking object based on `SELECT * FROM CUSTOMER` query. But *the caller side doesn't expect it anymore*. SQL speaking customer becomes optional. The callers are bound only on those pieces of `Customer` that they need. `CustomerBill` doesn't require fully implemented `Customer`, it is okay with a pair of `CustomerName` and `CreditCard` implementations. And while `Customer` implements these pieces, it can be substituted there as well.
+Notice that `CustomerBill` and `DeliveryToCustomer` doesn't bound directly to `Customer`. Minus two reuse places of `Customer`. Since you don't need fake customers to test `CustomerBill` and `DeliveryToCustomer`, you don't need static implementation of `Customer` either. Minus one more. Theoretically, `Customer` could still be implemented as an SQL-speaking object based on `SELECT * FROM CUSTOMER` query...
+
+But *the caller side doesn't expect it anymore*. `Customer` interface and `SQLCustomer` implementation become optional. The callers are bound only on those pieces of `Customer` that they need. `CustomerBill` doesn't require fully implemented `Customer`, it is okay with a pair of `CustomerName` and `CreditCard` implementations. And while `Customer` implements these pieces, it can be substituted there as well.
 
 If in future business decides to change package delivery procedure and bound it to, I don't know, the customer's phone number, the only thing that will be impacted by this business decision is `DeliveryToCustomer` --- new attribute `PhoneNumber phone` will be introduced there, and handled in `run()` method. From where this phone number would come from? Depends on what business wants, but this is low-level details. Probably we'd update our `CUSTOMER` table, keep customers phones there and provide an access to them via `Customer` interface? Or it can be obtained from a separate phone catalog service via some new implementation of `PhoneNumber`? What important is that no existing abstractions were changed in process.
 

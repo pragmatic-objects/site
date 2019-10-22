@@ -182,9 +182,9 @@ certain access and modification characteristics. We invented different kinds of 
 
 <p>While we abstract out stable code components from volatile implementations, in a typical data model <em>everything</em> is potentially volatile. Almost every business requirement impacts data model of your application. There is just nothing to abstract out. In data world, nobody even tries to fight with volatility because it is meaningless. Instead, they use data migration and schema versioning solutions. More sophisticated are these solutions, less concern there is to people who maintain the model.</p>
 
-<p>While we are concerned about mutability in our code, agitate for purity and statelessness of our components, data models are just mutable by definition. To think more of it, mutability is just innatural for computer programs. We can hide all side effects behind immutable objects or monads but we’ll never run away from the fact that in the end, our programm will be compiled to a set of imperative machine instructions, operating with data models in mutable RAM, hard disk, stateful IO.</p>
+<p>While we are concerned about mutability in our code, agitate for purity and statelessness of our components, data models are just mutable by definition. To think more of it, immutability is just innatural for computer programs. We can hide all side effects behind immutable objects or monads but we’ll never run away from the fact that in the end, our programm will be compiled to a set of imperative machine instructions, operating with data models in mutable RAM or hard disk, stateful IO.</p>
 
-<p>That’s why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. <code class="highlighter-rouge">Customer</code>, that repeats your data model, causes conflict of these two different worlds: code and data.</p>
+<p>That’s why no matter how we bring data model to application: via DTO, or data-like interfaces, it will always cause maintanance pain. Just embrace it. <code class="highlighter-rouge">Customer</code>, that repeats your data model, brings these two different worlds — code and data — to conflict.</p>
 
 <h2 id="a-possible-way-out-of-it">A possible way out of it</h2>
 
@@ -206,14 +206,13 @@ that despite being an interface, is <em>not</em> a stable abstraction anymore.</
 
 <span class="kd">class</span> <span class="nc">CustomerBill</span> <span class="kd">implements</span> <span class="n">Bill</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">CustomerName</span> <span class="n">name</span><span class="o">;</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="n">CreditCard</span> <span class="n">creditCard</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">CreditCard</span> <span class="n">creditCardInfo</span><span class="o">;</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">amount</span><span class="o">;</span>
 
     <span class="kd">public</span> <span class="kd">final</span> <span class="kt">void</span> <span class="nf">charge</span><span class="o">()</span> <span class="o">{</span>
         <span class="c1">// Obtain the customer's credit card info and charge an amount from it.</span>
     <span class="o">}</span>
 <span class="o">}</span>
-
 
 <span class="kd">interface</span> <span class="nc">CustomerName</span> <span class="o">{</span>
     <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
@@ -231,12 +230,19 @@ that despite being an interface, is <em>not</em> a stable abstraction anymore.</
     <span class="n">String</span> <span class="nf">passportId</span><span class="o">();</span>
 <span class="o">}</span>
 
-
 <span class="kd">interface</span> <span class="nc">Customer</span> <span class="kd">extends</span> <span class="n">CustomerName</span><span class="o">,</span> <span class="n">Address</span><span class="o">,</span> <span class="n">CreditCard</span><span class="o">,</span> <span class="n">PassportId</span> <span class="o">{</span>
+<span class="o">}</span>
+
+<span class="c1">// This implementation can be substituted in both DeliveryToCustomer (as passportId and address)</span>
+<span class="c1">// and CustomerBill (as name and creditCardInfo)</span>
+<span class="kd">class</span> <span class="nc">SQLCustomer</span> <span class="kd">implements</span> <span class="n">Customer</span> <span class="o">{</span>
+    <span class="c1">//... typical SQL-speaking implementation</span>
 <span class="o">}</span>
 </code></pre></div></div>
 
-<p>Notice that <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code> doesn’t bound directly to <code class="highlighter-rouge">Customer</code>. Minus two reuse places of <code class="highlighter-rouge">Customer</code>. Since you don’t need fake customers to test <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code>, you don’t need static implementation of <code class="highlighter-rouge">Customer</code> either. Minus one more. Theoretically, <code class="highlighter-rouge">Customer</code> could still be implemented as an SQL-speaking object based on <code class="highlighter-rouge">SELECT * FROM CUSTOMER</code> query. But <em>the caller side doesn’t expect it anymore</em>. SQL speaking customer becomes optional. The callers are bound only on those pieces of <code class="highlighter-rouge">Customer</code> that they need. <code class="highlighter-rouge">CustomerBill</code> doesn’t require fully implemented <code class="highlighter-rouge">Customer</code>, it is okay with a pair of <code class="highlighter-rouge">CustomerName</code> and <code class="highlighter-rouge">CreditCard</code> implementations. And while <code class="highlighter-rouge">Customer</code> implements these pieces, it can be substituted there as well.</p>
+<p>Notice that <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code> doesn’t bound directly to <code class="highlighter-rouge">Customer</code>. Minus two reuse places of <code class="highlighter-rouge">Customer</code>. Since you don’t need fake customers to test <code class="highlighter-rouge">CustomerBill</code> and <code class="highlighter-rouge">DeliveryToCustomer</code>, you don’t need static implementation of <code class="highlighter-rouge">Customer</code> either. Minus one more. Theoretically, <code class="highlighter-rouge">Customer</code> could still be implemented as an SQL-speaking object based on <code class="highlighter-rouge">SELECT * FROM CUSTOMER</code> query…</p>
+
+<p>But <em>the caller side doesn’t expect it anymore</em>. <code class="highlighter-rouge">Customer</code> interface and <code class="highlighter-rouge">SQLCustomer</code> implementation become optional. The callers are bound only on those pieces of <code class="highlighter-rouge">Customer</code> that they need. <code class="highlighter-rouge">CustomerBill</code> doesn’t require fully implemented <code class="highlighter-rouge">Customer</code>, it is okay with a pair of <code class="highlighter-rouge">CustomerName</code> and <code class="highlighter-rouge">CreditCard</code> implementations. And while <code class="highlighter-rouge">Customer</code> implements these pieces, it can be substituted there as well.</p>
 
 <p>If in future business decides to change package delivery procedure and bound it to, I don’t know, the customer’s phone number, the only thing that will be impacted by this business decision is <code class="highlighter-rouge">DeliveryToCustomer</code> — new attribute <code class="highlighter-rouge">PhoneNumber phone</code> will be introduced there, and handled in <code class="highlighter-rouge">run()</code> method. From where this phone number would come from? Depends on what business wants, but this is low-level details. Probably we’d update our <code class="highlighter-rouge">CUSTOMER</code> table, keep customers phones there and provide an access to them via <code class="highlighter-rouge">Customer</code> interface? Or it can be obtained from a separate phone catalog service via some new implementation of <code class="highlighter-rouge">PhoneNumber</code>? What important is that no existing abstractions were changed in process.</p>
 
