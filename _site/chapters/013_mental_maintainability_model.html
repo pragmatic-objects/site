@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Mental maintainability model</title>
+    <meta name="description"
+          content="The one and the only way to judge about software maintainability">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Mental maintainability model</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Mental maintainability model'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p>Several months ago, I outlined <a href="006_design_core_principles.html">my personal minimal self-sufficient set of principles</a> for keeping software design maintainable at all times. The principles were the following:</p>
+
+<blockquote>
+  <ol>
+    <li>Each self-sufficient reusable component of some software should be either abstract or concrete.</li>
+    <li>Abstract components are good at defining a purpose of application and intentions of its parts, while concrete components are good for implementing end-user software requirements.</li>
+    <li>Abstract components should be stable, while concrete components should be easy to change.</li>
+    <li>Abstract components should never depend on concrete components.</li>
+  </ol>
+
+  <p><a href="006_design_core_principles.md">The core principles of software design</a></p>
+</blockquote>
+
+<p>Yet the story feels unfinished without the explaination of how I got these principles, so I decided to dedicate this post to fill this gap and elaborate on what I mean when I say “true maintainability”.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Modern programming is impossible without splitting the source code to units — self-sufficient reusable pieces of code. Units may be represented by many things: in object oriented programming, units are usually the classes and interfaces, in functional programming — functions, in procedural programming — procedures. If we look on higher level, there will be units too: in Java they are the Jar files. In <a href="https://www.osgi.org/">OSGi</a> they are the OSGi modules. Even <a href="https://microservices.io/">microservices</a> we can count for “units”. Why not?</p>
+
+<p>What was the main purpose for the units to be introduced in the first place? Why do we need the code be broken into pieces? I believe there is the only correct answer for this: reuse. We need units in order to reuse the pieces of code.</p>
+
+<p>When it comes to units, there is one good and one bad news. Good news is that units, while being reused in various places of the system, allow us to significantly reduce amount of boilerplate and duplicated code. Bad news is that while being reused, units bring some nasty effect called coupling. And with tight coupling it becomes really hard to reuse the units.</p>
+
+<p>I’d say coupling is zero-day vulnerability of separating code to units. No matter how you split and reuse your code, no matter what paradigm you follow, language you use, the story will always be the same. With reusability inevitably comes the coupling.</p>
+
+<p>Why coupling is bad? Well, usually the reason we strive to keep software maintainable is to meet everchanging business requirements. And the business is known to be very volatile. Every day it comes to us with new requirements, and these new requirements challenge our code on daily basis. In good days cost of feature implementation is about making simple one-liner. In bad days, feature impacts huge amount of code, costs a lot, causes great risk of regressions and burns people’s nerves. When bad days prevail over good ones, we usually say that software is not maintainable enough, and start thinking about refactoring. Needless to say that coupling takes not the least role in making our life worse.</p>
+
+<p>So. Taking all of this into account, I’d formulate the following definition of maintainable design:</p>
+
+<blockquote>
+  <p>Maintainable software design is splitting the software code to units in such way, that coupling from their reuse will cause as less obstacles for maintaining business needs of software as possible.</p>
+</blockquote>
+
+<p>Below in the post, I’ll stick to this definition. If you disagree with it, lets discuss it in comments.</p>
+
+<h2 id="main-sequence">Main sequence</h2>
+
+<p>Once upon a time, Robert Martin outlined an interesting model in his “Clean Architecture” book, called “main sequence”. Originally, Uncle Bob described it in context of packages, consisting of classes, but I believe it works for any kind of reusable code, and can be generalized for anything. I highly recommend to read about main sequence in the book. In this post, I’ll provide my generalized version of the model.</p>
+
+<h3 id="dependencies">Dependencies</h3>
+
+<p>First of all, we need to classify all the dependencies to two types:</p>
+
+<ul>
+  <li>
+    <p><em>Fan-in dependencies</em> (afferent coupling) — given unit <code class="highlighter-rouge">Y</code>, a set of other units which depend on <code class="highlighter-rouge">Y</code>. The notable thing about this kind is that when business hits unit <code class="highlighter-rouge">Y</code>, it’s fan-in dependencies will be impacted as well.</p>
+  </li>
+  <li>
+    <p><em>Fan-out dependencies</em> (efferent coupling) — given unit <code class="highlighter-rouge">Y</code>, a set of other units which <code class="highlighter-rouge">Y</code> depends on. The notable thing about this kind is that when business hits one of the unit <code class="highlighter-rouge">Y</code>’s dependencies, unit <code class="highlighter-rouge">Y</code> will be impacted as well.</p>
+  </li>
+</ul>
+
+<h3 id="instability">Instability</h3>
+
+<p><em>Instability</em> is a degree of how much the units are volatile and easy to change. It is counted as:</p>
+
+<p><img src="https://latex.codecogs.com/gif.latex?Instability = \frac{N_{fan-out}}{N_{fan-out}+N_{fan-in}}" border="0" /></p>
+
+<p>Stable units (instability is close to 0) are hard to change, because any attempt to change them will cause 
+impact on all its fan-in dependencies. At the same time, since there are not much of fan-out dependencies, there is 
+less risk of impacting the unit from changes wherever they occur in application.</p>
+
+<p>Volatile units (instability is close to 1) are easy to change - the impact from changing them has no place to spread, since there are no fan-in dependencies. But at the same time, such units tend to change very often, because they have lots of fan-out dependencies, from which the the impact of changes can come.</p>
+
+<h3 id="abstractness">Abstractness</h3>
+<p><em>Abstractness</em> is relation of abstract parts of the component to the whole. <em>Abstract</em> here stands for some non-executable high-level declaration, unbound from all implementation details. It is counted as:</p>
+
+<p><img src="https://latex.codecogs.com/gif.latex?Abstractness = \frac{N_{abstract}}{N_{abstract}+N_{implemented}}" border="0" /></p>
+
+<p>Abstract units (abstractness is close to 1) contain no executable code and are free from all low-level implementation details. Usually, they are actively being reused by other units of application. Typical representatives are interfaces.</p>
+
+<p>Implementation units (abstractness is close to 0), on the contrary, are full of executable code and are tightly bound to implementation details. Usually, they are actively reusing other units of application. Typycal representatives are classes.</p>
+
+<h2 id="zones">Zones</h2>
+
+<p>Now, if we take all units of some application and estimate abstractness and instability for them,
+there will be four groups, or four zones</p>
+
+<h3 id="stable-abstractions">Stable abstractions</h3>
+
+<p>These units are the best candidates for your application’s high-level architecture. Use them to define the purpose of your application, and keep them as independent from low-level details as possible. Note that since they are stable, you should be concerned when you realise that the business demands you to change them. Good news is that these units are highly and safely reusable.</p>
+
+<h3 id="volatile-implementations">Volatile implementations</h3>
+
+<p>These units are the best place for low level concretics, and implementing end-user requirements. End-user requirements are well-known to be highly unstable, that’s why in order to meet business challenges, volatile implementation units must remain volatile. Which means that you should never reuse them in other units. Good news though is that these units are really easy to change.</p>
+
+<h3 id="stable-implementations-zone-of-pain">Stable implementations (Zone of pain)</h3>
+
+<p>Such components are hard to change, since they are actively used by other units, yet they tend to change, since they are deeply bound to low-level details. These components are in zone of pain, and when software requirements change, these units will make you suffer. Avoid them at all costs.</p>
+
+<h3 id="volatile-abstractions-zone-of-uselessness">Volatile abstractions (Zone of uselessness)</h3>
+
+<p>These are some redundant and forgotten units, which are not used by anybody, but for some reason weren’t removed. They are in zone of uselessness - they usually won’t bring you explicit troubles, but  will pollute your code. It’s better to get rid of them.</p>
+
+<h2 id="how-to-apply-this-knowledge">How to apply this knowledge</h2>
+
+<p>The model above is applicable to any environment or paradigm based on reusable components. To apply it, just answer to yourself on these questions:</p>
+
+<ol>
+  <li>
+    <p>What is unit in your environment? How your code can be reused?</p>
+  </li>
+  <li>
+    <p>How units in your environment can depend on each other?</p>
+  </li>
+  <li>
+    <p>How can you abstract low level details out in your environment</p>
+  </li>
+</ol>
+
+<p>Then, having the answers in mind, keep your units away from zone of pain.</p>
+
+<p>For OOP and Java, my answers on these questions would be the following:</p>
+
+<ol>
+  <li>
+    <p>Legit units in Java are classes and interfaces.</p>
+  </li>
+  <li>
+    <p>In Java, there are two kinds of legit dependencies, possible between units. One is referencing (when one Java type uses another Java type in attributes or methods), another is subtyping (when one type extends/implements another, respecting <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">LSP</a>).</p>
+  </li>
+  <li>
+    <p>In Java, there are two ways of abstracting out low level details: by means of interfaces and abstract classes.</p>
+  </li>
+</ol>
+
+<p>This is not the only possible set of answers of course. The answers would be different for different paradigms, languages, approaches and environments. Anyway. Having the answers to these questions, you can estimate abstractness and instability of your units and treat them accordingly.</p>
+
+<p>If you assume that certain class or interface must be reused actively (is stable), it’s in your interest to purify it from low-level details, and keep its dependencies to a bare minimum (make an abstraction from it). Making methods abstract and referencing only the interfaces is a good option to do so. Keeping number of imports small is another good strategy.</p>
+
+<p>If you realise that your class depends too much on the other classes, it’s in your interest to prohibit its reuse (keep it volatile). Or to think about refactoring it. Note however that the enormous list of dependencies is not yet a trouble per-se. It will become a trouble, but only if you plan to reuse the unit. At the same time, for entry points to your system, like <code class="highlighter-rouge">main</code> class, or HTTP endpoint controller, having loads of dependencies is usually safe. Because you will doubtly ever have temptation to reuse <code class="highlighter-rouge">main</code> or controller class across the system.</p>
+
+<p>Keep in mind that your environment can be quite complex. In Java, in addition to classes and interfaces, there could be other self-sufficient pieces of code. Like static methods, that fit very well to the definition of unit (despite the fact that they <a href="https://www.yegor256.com/2014/05/05/oop-alternative-to-utility-classes.html">don’t fit well enough to the OOP paradigm</a>). And speaking about dependencies between units, there is very large number of ways in Java of how one can implicitly couple one unit to the other: <a href="005_implementation_inheritance_paranoia.html">broken LSP</a>, <a href="https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html#avoiding-temporal-coupling">temporal coupling by means of mutable side effects</a>, <a href="https://www.yegor256.com/2014/05/13/why-null-is-bad.html">NULLs</a>, <a href="001_checked_exceptions.html">checked exceptions</a>, <a href="https://www.yegor256.com/2015/04/02/class-casting-is-anti-pattern.html">type-based reasoning</a>… You name it. They can cause quite inobvious ways of making two units dependant. Tracking instability and abstractness, taking into account all this stuff together, is very hard and error-prone.</p>
+
+<p>That’s why in order to keep design under control, it is crucially important to follow the rule…</p>
+
+<h2 id="keep-it-simple-and-stupid">Keep It Simple and Stupid</h2>
+
+<p>No matter what framework you use. No matter what paradigm you follow. No matter what programming language you use. Your answer on the questions above must be as simple as possible.</p>
+
+<p>If the answer is hard, simplify it. If you are in OOP paradigm — prohibit static methods, since objects are your true uints, not procedures. If you see that there are NULLs and reflection that can cause parasitic dependencies between units, prohibit them as well.</p>
+
+<p>Every thing, that doesn’t fit to the answer you gave, must be explicitly prohibited. Be pragmatic — each and every thing you use for the sake of maintainability must follow one and the only purpose. Helping you to keep your units away from zone of pain.</p>
+
+<p>Nothing else matter.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2019 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>
