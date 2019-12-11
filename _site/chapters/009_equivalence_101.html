@@ -124,7 +124,7 @@ However, the subject is much deeper then it was covered there. That’s why I de
 
 <p><code class="highlighter-rouge">FracStatic</code> is the simplest case: it has identity consisting of two integers, it has no state, and its behavior is rather trivial. It is obvious that two <code class="highlighter-rouge">FracStatic</code> instances will be equivalent if they have the same values for <code class="highlighter-rouge">numerator</code> and <code class="highlighter-rouge">denominator</code> attributes.</p>
 
-<p>But it is not always that simple. In languages like Java we have plenty of objects that just don’t declare their identity by attributes. For example: Java structures from <code class="highlighter-rouge">java.util</code>. You can’t instantiate two <code class="highlighter-rouge">ArrayList</code> instances that would share the same array under the hood. Each of the two will be unique and independent. It is neither good, nor bad, it just makes things a bit more complicated:</p>
+<p>But it is not always that simple. In languages like Java we have plenty of objects that just don’t declare their identity by attributes. For example: <a href="https://en.wikipedia.org/wiki/Java_collections_framework">Java collections</a> from <code class="highlighter-rouge">java.util</code>. You can’t instantiate two <code class="highlighter-rouge">HashSet</code> instances that would refer to the same state under the hood. Each of the two will be unique and independent. It is neither good, nor bad, it just makes things a bit more complicated:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">GuestList</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">guests</span><span class="o">;</span>
@@ -149,7 +149,7 @@ However, the subject is much deeper then it was covered there. That’s why I de
 <p>Objects <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code> here are not equivalent, because their identity (<code class="highlighter-rouge">guests</code> attribute) points to the different <em>state</em> (located in different <code class="highlighter-rouge">HashSet</code> instances). If they were equivalent, the program below would output <code class="highlighter-rouge">true</code>:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">a</span><span class="o">.</span><span class="na">invite</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">);</span>
-<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">isInvited</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">));</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">isInvited</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">));</span> <span class="c1">// false</span>
 </code></pre></div></div>
 
 <p>At the same time, we can make these two instances of <code class="highlighter-rouge">a</code> and <code class="highlighter-rouge">b</code> equivalent by providing the same <code class="highlighter-rouge">HashSet</code> instance to them:</p>
@@ -157,6 +157,9 @@ However, the subject is much deeper then it was covered there. That’s why I de
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">HashSet</span> <span class="n">memory</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">();</span>
 <span class="n">GuestList</span> <span class="n">a</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="n">memory</span><span class="o">);</span>
 <span class="n">GuestList</span> <span class="n">b</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GuestList</span><span class="o">(</span><span class="n">memory</span><span class="o">);</span>
+
+<span class="n">a</span><span class="o">.</span><span class="na">invite</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">);</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">b</span><span class="o">.</span><span class="na">isInvited</span><span class="o">(</span><span class="s">"skapral"</span><span class="o">));</span> <span class="c1">// true</span>
 </code></pre></div></div>
 
 <p>What makes <code class="highlighter-rouge">GuestList</code> and <code class="highlighter-rouge">HashSet</code> classes different? Why the instances of the former can be equivalent and the instances of the latter cannot? Two things actually:</p>
@@ -169,7 +172,7 @@ However, the subject is much deeper then it was covered there. That’s why I de
 <p>It all gives us an important conclusion:</p>
 
 <blockquote>
-  <p>Equivalence term is applicable to instances of only those classes, constructors of which are logic free and attributes of which are final.</p>
+  <p>Equivalence term is applicable to instances of only those classes, constructors of which are free of logic and attributes of which are final.</p>
 </blockquote>
 
 <p>Taking into account all the examples and conclusions we made above, we can make the second definition of equivalence:</p>

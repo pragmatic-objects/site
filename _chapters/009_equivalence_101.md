@@ -105,7 +105,7 @@ class FracStatic implements Fraction {
 
 `FracStatic` is the simplest case: it has identity consisting of two integers, it has no state, and its behavior is rather trivial. It is obvious that two `FracStatic` instances will be equivalent if they have the same values for `numerator` and `denominator` attributes.
 
-But it is not always that simple. In languages like Java we have plenty of objects that just don't declare their identity by attributes. For example: Java structures from `java.util`. You can't instantiate two `ArrayList` instances that would share the same array under the hood. Each of the two will be unique and independent. It is neither good, nor bad, it just makes things a bit more complicated:
+But it is not always that simple. In languages like Java we have plenty of objects that just don't declare their identity by attributes. For example: [Java collections](https://en.wikipedia.org/wiki/Java_collections_framework) from `java.util`. You can't instantiate two `HashSet` instances that would refer to the same state under the hood. Each of the two will be unique and independent. It is neither good, nor bad, it just makes things a bit more complicated:
 
 ```java
 class GuestList {
@@ -132,7 +132,7 @@ Objects `a` and `b` here are not equivalent, because their identity (`guests` at
 
 ```java
 a.invite("skapral");
-System.out.println(b.isInvited("skapral"));
+System.out.println(b.isInvited("skapral")); // false
 ```
 
 At the same time, we can make these two instances of `a` and `b` equivalent by providing the same `HashSet` instance to them:
@@ -141,6 +141,9 @@ At the same time, we can make these two instances of `a` and `b` equivalent by p
 HashSet memory = new HashSet();
 GuestList a = new GuestList(memory);
 GuestList b = new GuestList(memory);
+
+a.invite("skapral");
+System.out.println(b.isInvited("skapral")); // true
 ```
 
 What makes `GuestList` and `HashSet` classes different? Why the instances of the former can be equivalent and the instances of the latter cannot? Two things actually:
@@ -150,8 +153,7 @@ What makes `GuestList` and `HashSet` classes different? Why the instances of the
 
 It all gives us an important conclusion:
 
-> Equivalence term is applicable to instances of only those classes, constructors of which are logic free and attributes of which are final.
-
+> Equivalence term is applicable to instances of only those classes, constructors of which are free of logic and attributes of which are final.
 
 Taking into account all the examples and conclusions we made above, we can make the second definition of equivalence:
 
