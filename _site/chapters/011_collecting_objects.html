@@ -56,11 +56,11 @@
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">PuzzleSourceStatic</span> <span class="kd">implements</span> <span class="n">PuzzleSource</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">Puzzle</span><span class="o">&gt;</span> <span class="n">puzzles</span><span class="o">;</span>
 
-    <span class="kd">public</span> <span class="nf">PsrcStatic</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Puzzle</span><span class="o">&gt;</span> <span class="n">puzzles</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">PuzzleSourceStatic</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">Puzzle</span><span class="o">&gt;</span> <span class="n">puzzles</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">.</span><span class="na">puzzles</span> <span class="o">=</span> <span class="n">puzzles</span><span class="o">;</span>
     <span class="o">}</span>
 
-    <span class="kd">public</span> <span class="nf">PsrcStatic</span><span class="o">(</span><span class="n">Puzzle</span><span class="o">...</span> <span class="n">puzzles</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">PuzzleSourceStatic</span><span class="o">(</span><span class="n">Puzzle</span><span class="o">...</span> <span class="n">puzzles</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">(</span><span class="n">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="n">puzzles</span><span class="o">));</span>
     <span class="o">}</span>
 
@@ -73,7 +73,7 @@
 <span class="kd">public</span> <span class="kd">class</span> <span class="nc">PuzzleSourceCombined</span> <span class="kd">implements</span> <span class="n">PuzzleSource</span> <span class="o">{</span>
     <span class="kd">private</span> <span class="kd">final</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">PuzzleSource</span><span class="o">&gt;</span> <span class="n">sources</span><span class="o">;</span>
 
-    <span class="kd">public</span> <span class="nf">PsrcCombined</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">PuzzleSource</span><span class="o">&gt;</span> <span class="n">sources</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">PuzzleSourceCombined</span><span class="o">(</span><span class="n">List</span><span class="o">&lt;</span><span class="n">PuzzleSource</span><span class="o">&gt;</span> <span class="n">sources</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">.</span><span class="na">sources</span> <span class="o">=</span> <span class="n">sources</span><span class="o">;</span>
     <span class="o">}</span>
 

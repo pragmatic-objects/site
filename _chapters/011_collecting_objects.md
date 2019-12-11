@@ -35,11 +35,11 @@ interface PuzzleSource {
 public class PuzzleSourceStatic implements PuzzleSource {
     private final List<Puzzle> puzzles;
 
-    public PsrcStatic(List<Puzzle> puzzles) {
+    public PuzzleSourceStatic(List<Puzzle> puzzles) {
         this.puzzles = puzzles;
     }
 
-    public PsrcStatic(Puzzle... puzzles) {
+    public PuzzleSourceStatic(Puzzle... puzzles) {
         this(List.of(puzzles));
     }
 
@@ -52,7 +52,7 @@ public class PuzzleSourceStatic implements PuzzleSource {
 public class PuzzleSourceCombined implements PuzzleSource {
     private final List<PuzzleSource> sources;
 
-    public PsrcCombined(List<PuzzleSource> sources) {
+    public PuzzleSourceCombined(List<PuzzleSource> sources) {
         this.sources = sources;
     }
 
