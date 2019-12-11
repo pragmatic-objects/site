@@ -217,21 +217,26 @@ interface Memory {
 
 This is the place where we will keep the cache records. Every calculation, that is supposed to be cached, we wrap up by calling `memoizedCalculation` method. The pair of `[source, key]` will be the cache key, by which memoized values will be resolved inside `Memory` instances. And in order to invalidate the cache, there is `reset()` method.
 
-By implementing `Memory`, we may introduce different sorts of cache storages. Below is the example of a simple cache, which will store memoized values inside `ConcurrentHashMap`:
+By implementing `Memory`, we may introduce different sorts of cache storages. Below is the [example of a simple cache](https://github.com/pragmatic-objects/oo-memoized/blob/master/memoized-chm/src/main/java/com/pragmaticobjects/oo/memoized/chm/MemoryCHM.java), which will store memoized values inside `ConcurrentHashMap`:
 
 ```java
 public class MemoryCHM implements Memory {
-    private final ConcurrentHashMap memoizedObjects;
+    private static final ConcurrentHashMap<Object, Calculation> DEFAULT = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Object, Calculation> memoizedObjects;
 
-    public MemoryCHM(ConcurrentHashMap memoizedObjects) {
+    public MemoryCHM(ConcurrentHashMap<Object, Calculation> memoizedObjects) {
         this.memoizedObjects = memoizedObjects;
     }
 
+    public MemoryCHM() {
+        this(DEFAULT);
+    }
+
     @Override
-    public final <S, T> Calculation<T> memoizedCalculation(S that, Object key, Supplier<T> calculation) {
+    public final <S, T> Calculation<T> memoizedCalculation(S that, Object key, Supplier<T> methodBody) {
         return memoizedObjects.computeIfAbsent(
             Arrays.asList(that, key),
-            mref -> calculation.apply().
+            mref -> new CalcDefault(that, key, methodBody)
         );
     }
 

@@ -228,20 +228,25 @@ Which is suboptimal: two <code class="highlighter-rouge">GithubUser</code> with 
 
 <p>This is the place where we will keep the cache records. Every calculation, that is supposed to be cached, we wrap up by calling <code class="highlighter-rouge">memoizedCalculation</code> method. The pair of <code class="highlighter-rouge">[source, key]</code> will be the cache key, by which memoized values will be resolved inside <code class="highlighter-rouge">Memory</code> instances. And in order to invalidate the cache, there is <code class="highlighter-rouge">reset()</code> method.</p>
 
-<p>By implementing <code class="highlighter-rouge">Memory</code>, we may introduce different sorts of cache storages. Below is the example of a simple cache, which will store memoized values inside <code class="highlighter-rouge">ConcurrentHashMap</code>:</p>
+<p>By implementing <code class="highlighter-rouge">Memory</code>, we may introduce different sorts of cache storages. Below is the <a href="https://github.com/pragmatic-objects/oo-memoized/blob/master/memoized-chm/src/main/java/com/pragmaticobjects/oo/memoized/chm/MemoryCHM.java">example of a simple cache</a>, which will store memoized values inside <code class="highlighter-rouge">ConcurrentHashMap</code>:</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">MemoryCHM</span> <span class="kd">implements</span> <span class="n">Memory</span> <span class="o">{</span>
-    <span class="kd">private</span> <span class="kd">final</span> <span class="n">ConcurrentHashMap</span> <span class="n">memoizedObjects</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">ConcurrentHashMap</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">,</span> <span class="n">Calculation</span><span class="o">&gt;</span> <span class="n">DEFAULT</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConcurrentHashMap</span><span class="o">&lt;&gt;();</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">ConcurrentHashMap</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">,</span> <span class="n">Calculation</span><span class="o">&gt;</span> <span class="n">memoizedObjects</span><span class="o">;</span>
 
-    <span class="kd">public</span> <span class="nf">MemoryCHM</span><span class="o">(</span><span class="n">ConcurrentHashMap</span> <span class="n">memoizedObjects</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">MemoryCHM</span><span class="o">(</span><span class="n">ConcurrentHashMap</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">,</span> <span class="n">Calculation</span><span class="o">&gt;</span> <span class="n">memoizedObjects</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">this</span><span class="o">.</span><span class="na">memoizedObjects</span> <span class="o">=</span> <span class="n">memoizedObjects</span><span class="o">;</span>
     <span class="o">}</span>
 
+    <span class="kd">public</span> <span class="nf">MemoryCHM</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">(</span><span class="n">DEFAULT</span><span class="o">);</span>
+    <span class="o">}</span>
+
     <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="kd">final</span> <span class="o">&lt;</span><span class="n">S</span><span class="o">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Calculation</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="nf">memoizedCalculation</span><span class="o">(</span><span class="n">S</span> <span class="n">that</span><span class="o">,</span> <span class="n">Object</span> <span class="n">key</span><span class="o">,</span> <span class="n">Supplier</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">calculation</span><span class="o">)</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kd">final</span> <span class="o">&lt;</span><span class="n">S</span><span class="o">,</span> <span class="n">T</span><span class="o">&gt;</span> <span class="n">Calculation</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="nf">memoizedCalculation</span><span class="o">(</span><span class="n">S</span> <span class="n">that</span><span class="o">,</span> <span class="n">Object</span> <span class="n">key</span><span class="o">,</span> <span class="n">Supplier</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">methodBody</span><span class="o">)</span> <span class="o">{</span>
         <span class="k">return</span> <span class="n">memoizedObjects</span><span class="o">.</span><span class="na">computeIfAbsent</span><span class="o">(</span>
             <span class="n">Arrays</span><span class="o">.</span><span class="na">asList</span><span class="o">(</span><span class="n">that</span><span class="o">,</span> <span class="n">key</span><span class="o">),</span>
-            <span class="n">mref</span> <span class="o">-&gt;</span> <span class="n">calculation</span><span class="o">.</span><span class="na">apply</span><span class="o">().</span>
+            <span class="n">mref</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="n">CalcDefault</span><span class="o">(</span><span class="n">that</span><span class="o">,</span> <span class="n">key</span><span class="o">,</span> <span class="n">methodBody</span><span class="o">)</span>
         <span class="o">);</span>
     <span class="o">}</span>
 
