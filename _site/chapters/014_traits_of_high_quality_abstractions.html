@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Six traits of high-quality abstractions</title>
+    <meta name="description"
+          content="Traits, that will make your abstractions truly helpful.">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <link rel="stylesheet" type="text/css" href="/hl.css">
+    <link href="https://fonts.googleapis.com/css?family=Noto+Serif|Oswald" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/tonsky/FiraCode@1.206/distr/fira_code.css">
+</head>
+<body>
+    <header>
+    <h1>Six traits of high-quality abstractions</h1>
+    <a href="#disqus_thread">Comments</a>
+    •
+    <a href="/atom.xml">Subscribe (atom)</a>
+    •
+    <a href="https://github.com/pragmatic-objects/site/issues/new?title=Issue in chapter 'Six traits of high-quality abstractions'">Report an issue</a>
+    •
+    <a href="/">Back</a>
+</header>
+<article>
+    <p><a href="https://en.wikipedia.org/wiki/Dependency_inversion_principle">Dependency inversion principle</a>, the last and, in my opinion, the most important letter in SOLID abbreviation, says: “abstractions should never depend on details. Instead, it’s details which must depend on abstractions”. Inverse your dependencies. Keep coupling loose. Since interfaces in Java are the means for designing abstractions, these principle is addressed to them as well. At the same time, all these principles sound a bit vague and… abstract.</p>
+
+<p>In this post I’ve collected some concrete traits which, in my opinion, each abstraction should always have. You may say that they are well-known and too obvious to discuss, but in practice I see that they are almost always ignored or misinterpreted.</p>
+
+<h2 id="note">Note</h2>
+
+<p>In this blogpost, I will use the terms “interface” and “abstraction” as synonyms. Technically, they are not the same thing, but practically, as I already said, in languages like Java, interfaces are the best mean for declaring abstractions.</p>
+
+<p>The traits below can be actual even for the paradigms and languages that don’t have interfaces as a kind. Your <a href="013_mental_maintainability_model.html">units of reuse</a> will inevitably have some public contract, by which they will bound to each other. Traits below are actual to all kinds and ways of defining such public contracts.</p>
+
+<h3 id="trait-1-interface-should-stay-stable-no-matter-what">Trait #1: Interface should stay stable, no matter what</h3>
+
+<p>No matter how business is changed around your application, you should strive to make your abstractions stable. Stability is the primary and the only reason to abstract anything, because only stable things are safe to depend on. Therefore, if you are forced to change your interfaces too often, it’s a good indicator to stop for a while and think about possible refactoring.</p>
+
+<p>In my blog I often use a <code class="highlighter-rouge">Fraction</code> interface for demonstrating some of the ideas. Provided that the domain of some hypothetical application is working with simple math fractions, <code class="highlighter-rouge">Fraction</code> interface could be an example of a good stable  abstraction. Being bound to the stable definition of a fraction, saying that fraction is a thing with numerator and denominator, it ls less likely to be changed, whatever requirement the client of this hypothetical application will bring to us:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">Fraction</span> <span class="o">{</span>
+    <span class="kt">int</span> <span class="nf">numerator</span><span class="o">();</span>
+    <span class="kt">int</span> <span class="nf">denominator</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>What makes <code class="highlighter-rouge">Fraction</code> interface stable? The absence of implementation details, and reflection of a business demands, <a href="006_design_core_principles.html">of course</a>. Fraction definition doesn’t assume anything about the inner representation of its counterparts. It doesn’t assume anything on how the fraction was obtained or calculated, it just states that here is a fraction, which obligatory has the numerator and denominator. Period.</p>
+
+<p>If you noticed that your interfaces are changed on each third feature request, it is a clear sign that you picked up whong abstraction. Do some retrospective and try to find an answer — what is stable there, and what is not. Leave stable stuff in the interface and move volatile parts to its implementations.</p>
+
+<h3 id="trait-2-truly-good-interface-has-infinite-number-of-potentially-useful-implementations">Trait #2: Truly good interface has infinite number of potentially useful implementations</h3>
+
+<p><code class="highlighter-rouge">Fraction</code> interface can be implemented in infinite number of ways:</p>
+
+<ul>
+  <li>A trivial implementation, a fraction with fixed numerator and denominator.</li>
+  <li>A fraction-result of a various math operations with fractions: <code class="highlighter-rouge">FractionSum</code>, <code class="highlighter-rouge">FractionSubstract</code>, etc.</li>
+  <li>A fraction obtained from various sources: from a file (<code class="highlighter-rouge">FractionFromFile</code>), from a string (<code class="highlighter-rouge">FractionFromString</code>), <a href="https://www.yegor256.com/2014/12/01/orm-offensive-anti-pattern.html#sql-speaking-objects">SQL-speaking</a> fraction, etc</li>
+</ul>
+
+<p>The fact that the <code class="highlighter-rouge">Fraction</code> abstraction is tiered apart from any irrelevant technical details enables an ability to implement any technical details later, on demand. At the same time, client code, which operates on fractions, won’t be impacted, whatever implementation we choose. This enables flexibility in taking decisions, and wakes following <a href="https://en.wikipedia.org/wiki/Open%E2%80%93closed_principle">Open-closed principle</a> natural and straight-forward.</p>
+
+<h3 id="trait-3-liskov-substitution-principle-is-obligatory-requirement-for-all-interfaces-implementations">Trait #3: Liskov substitution principle is obligatory requirement for all interface’s implementations</h3>
+
+<p>Remember, that all those infinite interface implementations, existing or imaginary, <em>must</em> follow <a href="https://en.wikipedia.org/wiki/Liskov_substitution_principle">Liskov substitution principle</a>. Don’t even consider a class as a potential implementation of some interface if it doesn’t follow LSP towards it. All <a href="https://www.yegor256.com/2016/09/13/inheritance-is-procedural.html">troubles with inheritance</a> are actually a result of <a href="005_implementation_inheritance_paranoia.html">people violating</a> Liskov substitution principle when working with subtyping instruments. So never forget it.</p>
+
+<p>Remember also that interface is not just a mere bunch of methods. It has meaning, semantics. For example, given the <code class="highlighter-rouge">Fraction</code> interface, mentioned above, making one of its implementations to return zero on calling <code class="highlighter-rouge">denominator()</code> may be considered as LSP violation, despite the fact that Java type system allows that. Because for <a href="https://en.wikipedia.org/wiki/Rational_number">rational numbers</a>, dividing by zero makes no sense, and clients of <code class="highlighter-rouge">Fraction</code> are in their right to rely on this fact. Providing zero-denominator fraction to the clients will eventually break them, often in a hard way.</p>
+
+<h3 id="trait-4-there-should-be-particular-client-with-some-demand-behind-each-interface">Trait #4: There should be particular client with some demand behind each interface</h3>
+
+<p>When you seek for abstractions, it’s good idea to ask in advance: who will be the clients of it? How will it be used? Why do we need it? A client can be real (a user of your library or application, a customer or stakeholder of the product you design), or fictional (some class or component, which will depend on your abstraction). Former is more preferrable than latter.</p>
+
+<p>The reason why it is important is that it is very often the client who implicitly defines how the interface will look like.</p>
+
+<p>For example: lets imagine the typical <code class="highlighter-rouge">User</code> interface. Which methods is it supposed to have? Depends on who will use it and how. If we should show some user’s summary, then we can (theoretically) define it like this:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">summary</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>…or <a href="https://www.yegor256.com/2016/04/05/printers-instead-of-getters.html">this</a>:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="kt">void</span> <span class="nf">printOut</span><span class="o">(</span><span class="n">Media</span> <span class="n">media</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>If we should deliver a mail to some user, then the <code class="highlighter-rouge">User</code> can be defined like this (if the mail is electronic):</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">EMail</span> <span class="nf">address</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>…or this (if it is about postal delivery):</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">User</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">zip</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">postalAddress</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">name</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Sometimes, there could be many clients per one thing. For example, we may be required to show user’s summary and deliver mails to them (including both postal and electronic) in one application. In such case, remember about SOLID. In particularly, about the <a href="https://en.wikipedia.org/wiki/Interface_segregation_principle">interface segregation</a> and <a href="https://en.wikipedia.org/wiki/Single_responsibility_principle">single responsibility</a> principles. True client of the abstraction uses its capabilities at maximum. A client, which is bound to too many irrelevant information is <a href="https://en.wikipedia.org/wiki/Coupling_(computer_programming)">coupled</a> client, and coupled code is always a source of troubles with maintainability.</p>
+
+<p>That’s why a single <code class="highlighter-rouge">User</code> interface may be not the best option for you, and other abstractions might suit your needs better:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">interface</span> <span class="nc">UserSummary</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">asString</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">EMail</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">address</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">interface</span> <span class="nc">PostalAddress</span> <span class="o">{</span>
+    <span class="n">String</span> <span class="nf">zip</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">userName</span><span class="o">();</span>
+    <span class="n">String</span> <span class="nf">addressLine</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h3 id="trait-5-interfaces-should-not-be-bound-to-data-structures">Trait #5: Interfaces should not be bound to data structures</h3>
+
+<p>Here, I am talking about data-like interfaces and data structures like DTOs. For the problem of data-like “abstractions” I dedicated <a href="010_objects_and_data.html">a separate blogpost</a>. In short — if your application operates with some data model, binding abstractions to the data structures from that model is very risky and dangerous idea. Data models of a typical enterprize applications are almost never stable. Today your users are a tuple of <code class="highlighter-rouge">[id, login, email]</code>. Tomorrow the business will force you to add <code class="highlighter-rouge">name</code>, <code class="highlighter-rouge">surname</code>, <code class="highlighter-rouge">address</code>, <code class="highlighter-rouge">zip</code>, <code class="highlighter-rouge">authentication_roles</code> and many other stuff. While your database can easily handle these changes, your <code class="highlighter-rouge">UserDTO</code> class will turn all code that is coupled to it to a uncontrollable mess.</p>
+
+<h3 id="trait-6-naming-your-interfaces-with-the-names-of-design-patterns-is-deep-mistake">Trait #6: Naming your interfaces with the names of design patterns is deep mistake</h3>
+
+<p>In “Elegant Objects” this rule is formulated as <a href="https://www.yegor256.com/2015/03/09/objects-end-with-er.html">“Don’t create objects that ends with -ER”</a>. This rule is a good recommendation, but it has one weakness though: some names can end with <code class="highlighter-rouge">-ER</code> and be a part of a business domain. Examples are <code class="highlighter-rouge">Reader</code> (if it is about a client of a library), <code class="highlighter-rouge">Writer</code> (author of books), <code class="highlighter-rouge">Printer</code> and <code class="highlighter-rouge">Scanner</code> (typical office inventory), <code class="highlighter-rouge">Trigger</code> and <code class="highlighter-rouge">Emitter</code> (a button and a light bulb), <code class="highlighter-rouge">Cooler</code>, <code class="highlighter-rouge">Header</code>, <code class="highlighter-rouge">Timer</code>, plenty of them. “Elegant Objects” <a href="https://www.yegor256.com/2014/11/20/seven-virtues-of-good-object.html#6-his-name-is-not-a-job-title">proposes</a> seeking for non-ER alternatives, but c’mon: naming is one of the most <a href="https://habr.com/ru/post/437122/">difficult things</a> in Computer Science, let’s don’t make it even harder!</p>
+
+<p>So, I’d rephrase the -ER rule as:</p>
+
+<blockquote>
+  <p>Never name your objects with the names of <a href="https://en.wikipedia.org/wiki/Software_design_pattern">software design patterns</a></p>
+</blockquote>
+
+<p>Why? Simple. Typical software design pattern usually solves some general problems related to code organization, but they all are too general to take into account the business domain. And for abstractions existense, business domain is crucial! When thinking with patterns first, it is super-easy to forget about reality and start solving imaginary problems. Concequences of this are known under the term “overdesign”. It starts with innocently looking <code class="highlighter-rouge">UserDAO</code>’s, <code class="highlighter-rouge">ItemController</code>’s, and <code class="highlighter-rouge">ClientService</code>’s, that collect inside themselves the procedures directly or indirectly related to users, items, clients… Later, when it eventually ends up with cryptic <code class="highlighter-rouge">AbstractGenericControllerBuilderBean</code>’s, it’s too late to fix anything.</p>
+
+<p>Clients and customers choose our applications not because they have DAOs, Services, Builders, Listeners and DTOs. They choose our applications only when our applications solve their problems. Real problems, not imaginary. Since abstractions are the reflection of the application’s purpose, or business domain, patterns are odd there.</p>
+
+<h2 id="sum-up">Sum up</h2>
+
+<p>Make all interfaces of your application like described above, put your eforts to support these traits, and you’ll notice that maintenance will become much easier. Reaching this state is not trivial, especially on early stage of development, when there is typically not enough knowledge about the business domain. The knowledge, crucial for reasoning about what is stable and what is not.</p>
+
+<p>But striving towards the ideal worth the efforts.</p>
+
+
+</article>
+<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+        this.page.url = document.location.href.split('?')[0].split('#')[0];
+        this.page.identifier = this.page.url;
+    };
+    (function() {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://pragmatic-objects.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+
+
+
+
+    <footer>
+        <p>© 2020 - Kapralov Sergey</p>
+    </footer>
+</body>
+</html>

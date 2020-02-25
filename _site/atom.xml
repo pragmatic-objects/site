@@ -4,12 +4,12 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2019-11-10T21:27:15Z</updated>
+  <updated>2020-02-25T21:14:27Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
   </author>
-  <rights type="text">Copyright © 2019 Kapralov Sergey.</rights>
+  <rights type="text">Copyright © 2020 Kapralov Sergey.</rights>
   
   <entry>
     <title>Introduction</title>
@@ -121,6 +121,14 @@
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/013_mental_maintainability_model.html" />
     <updated>2019-11-10T00:00:00+03:00</updated>
+  </entry>
+  
+  <entry>
+    <title>Six traits of high-quality abstractions</title>
+    <id>https://pragmaticobjects.com/chapters/014_traits_of_high_quality_abstractions</id>
+    <link rel="alternate" type="text/html"
+          href="https://pragmaticobjects.com/chapters/014_traits_of_high_quality_abstractions.html" />
+    <updated>2020-02-25T00:00:00+03:00</updated>
   </entry>
   
 </feed>
