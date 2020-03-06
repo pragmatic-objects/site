@@ -256,13 +256,6 @@ pre.highlight {
     }
 }
 
-@media  (min-width: 80em) {
-    html, :root {
-      font-size: 20px;
-      line-height: 30px;
-    }
-}
-
 @media  (min-width: 60rem) {
     article {
         width: 40rem;
