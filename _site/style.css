@@ -63,6 +63,7 @@ p, ul, ol, pre, table, blockquote, div.highlight {
 ul ul, ol ol, ul ol, ol ul, div.highlight pre {
   margin-top: 0rem;
   margin-bottom: 0rem;
+  scrollbar-width: none;
 }
 hr, .hr {
   border: 1px solid;
@@ -87,10 +88,17 @@ a {
     -0.1rem 0 #fff, -0.15rem 0 #fff;
 }
 a:hover,
-a:active,
+a:active,	
 a:focus {
     text-decoration: none;
     background-image: none;
+    text-shadow: none;
+}
+::selection {
+    color: #fff;
+    background: #268bd2;
+    background-image: none;
+    text-shadow: none;
 }
 b {
     color: #303030;
@@ -229,19 +237,26 @@ pre.highlight {
 
 @media  (min-width: 20em) { 
     html, :root {
-      font-size: 14px;
-      line-height: 21px;
+      font-size: 12px;
+      line-height: 18px;
     }
 }
  
 @media  (min-width: 48em) {
     html, :root {
-      font-size: 18px;
-      line-height: 27px;
+      font-size: 14px;
+      line-height: 21px;
     }
 }
 
 @media  (min-width: 64em) {
+    html, :root {
+      font-size: 16px;
+      line-height: 24px;
+    }
+}
+
+@media  (min-width: 80em) {
     html, :root {
       font-size: 20px;
       line-height: 30px;
@@ -250,11 +265,11 @@ pre.highlight {
 
 @media  (min-width: 60rem) {
     article {
-        width: 60rem;
+        width: 40rem;
     }
 
     #disqus_thread {
-        width: 60rem;
+        width: 40rem;
     }
 }
 
