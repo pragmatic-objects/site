@@ -63,7 +63,6 @@ p, ul, ol, pre, table, blockquote, div.highlight {
 ul ul, ol ol, ul ol, ol ul, div.highlight pre {
   margin-top: 0rem;
   margin-bottom: 0rem;
-  scrollbar-width: none;
 }
 hr, .hr {
   border: 1px solid;
@@ -207,10 +206,15 @@ div.highlight {
     padding-bottom: 1.5rem;
     padding-left: 1rem;
     padding-right: 1rem;
+    overflow-x: hidden;
+}
+
+div.highlight:hover {
+    overflow-x: auto;
 }
 
 pre.highlight {
-    overflow-x: auto;
+    
 }
 
 
