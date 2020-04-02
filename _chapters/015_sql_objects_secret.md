@@ -36,7 +36,7 @@ public class RSSFeed {
     private final Path path;
     private final List<PostAR> posts;
 
-    public RSSFeed(Path path, List<Post> posts) {
+    public RSSFeed(Path path, List<PostAR> posts) {
         this.path = path;
         this.posts = posts;
     }
