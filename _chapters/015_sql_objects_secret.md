@@ -96,7 +96,7 @@ final class PgPost implements Post {
 }
 ```
 
-Looking to it, you will probably implicitly imagine some table named `posts`, with `date` and `title` columns there, by looking at the public API of `PgPost` and assuming that it repeats the table structure like Active Record. And that's what the original blogpost doesn't reveal, that's where the main mislead come from: actually, the table and it's contents are *secondary* thing here. The primary thing is the `Post` interface:
+By looking at the public API of `PgPost`, you will probably implicitly imagine some table named `posts`, with `date` and `title` columns there. And that's what the original blogpost doesn't reveal, that's where the main mislead comes from: actually, the table and it's contents are *secondary* thing here. The primary thing is the `Post` interface:
 
 ```java
 interface Post {
