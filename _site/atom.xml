@@ -4,7 +4,7 @@
   <subtitle>Pragmatic adaptation of Elegant Objects by Kapralov Sergey</subtitle>
   <link href="https://pragmaticobjects.com/atom.xml" rel="self"/>
   <link href="https://pragmaticobjects.com"/>
-  <updated>2020-02-25T21:14:27Z</updated>
+  <updated>2020-04-03T00:43:37Z</updated>
   <id>https://pragmaticobjects.com/</id>
   <author>
     <name>Kapralov Sergey</name>
@@ -128,6 +128,14 @@
     <id>https://pragmaticobjects.com/chapters/014_traits_of_high_quality_abstractions</id>
     <link rel="alternate" type="text/html"
           href="https://pragmaticobjects.com/chapters/014_traits_of_high_quality_abstractions.html" />
+    <updated>2020-02-25T00:00:00+03:00</updated>
+  </entry>
+  
+  <entry>
+    <title>What SQL speaking objects keep silence about</title>
+    <id>https://pragmaticobjects.com/chapters/015_sql_objects_secret</id>
+    <link rel="alternate" type="text/html"
+          href="https://pragmaticobjects.com/chapters/015_sql_objects_secret.html" />
     <updated>2020-02-25T00:00:00+03:00</updated>
   </entry>
   
