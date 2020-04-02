@@ -24,7 +24,7 @@ Take a close look, how much the root "data" is met there. The pattern is deeply 
 ```java
 PostAR post = new PostAR();
 post.title = "What SQL speaking objects keep silence about";
-post.date = 2020-02-25T00:00:00+03:00;
+post.date = new Date();
 post.save();
 ```
 
