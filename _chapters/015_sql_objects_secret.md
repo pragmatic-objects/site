@@ -19,7 +19,7 @@ To finally answer this question, lets bring the definition of Active Records:
 >
 > [www.martinfowler.com](https://www.martinfowler.com/eaaCatalog/activeRecord.html)
 
-Take a close look, how much the root "data" is met there. The pattern is deeply data-centric. There can be different [opinions](https://www.yegor256.com/2016/07/26/active-record.html) on that matter, but personally, I don't yet claim it wrong. As I stated in my previous posts, there should be a strict line between data and objects --- [what is virtue for code, is flaw for data, and vice versa](010_objects_and_data.html#objects-vs-data). Actve Record, as a part of the data world, is designed to expose the data:
+Take a close look, how much the root "data" is met there. The pattern is deeply data-centric. There can be different [opinions](https://www.yegor256.com/2016/07/26/active-record.html) on that matter, but personally, I don't yet claim it wrong. As I stated in my previous posts, there should be a strict line between data and objects --- [what is virtue for code, is flaw for data, and vice versa](010_objects_and_data.html#objects-vs-data). Active Record, as a part of the data world, is designed to expose the data:
 
 ```java
 PostAR post = new PostAR();
@@ -151,7 +151,7 @@ That makes difference.
 
 ## Why do we even need that name --- "SQL speaking objects"?
 
-To think more of it, there is actually nothing special about SQL speking objects. They are just objects, few from many. They have the same nature as any other objects: they implement some abstraction, which is supposed to be stable, and they have some dependencies, which are supposed to be loose. [Period](013_mental_maintainability_model.html). Does the fact that implementation of these objects executes SQL queries makes them somewhat different? I don't think so.
+To think more of it, there is actually nothing special about SQL speaking objects. They are just objects, few from many. They have the same nature as any other objects: they implement some abstraction, which is supposed to be stable, and they have some dependencies, which are supposed to be loose. [Period](013_mental_maintainability_model.html). Does the fact that implementation of these objects executes SQL queries makes them somewhat different? I don't think so.
 
 "SQL speaking objects" name is just a name of a pattern, but there is one common problem with any sort of patterns: the more you think of them instead of the business domain, the more deep and severe mistakes you are risking to make in your design. So, it's meaningless to draw the analogies between SQL speaking objects, Active Records, JPA entities or other ways of working with data. It is much less interesting then the quality of abstractions SQL speaking objects serve.
 
