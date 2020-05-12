@@ -152,7 +152,7 @@ On one side, there is code. Over the years, code of our solutions grew in comple
 So we invented several tricks of how to handle this complexity. We splat our code to reusable components, [abstracting out the purpose from the details of how this purpose is achieved, and 
 separating things which are volatile from things, which are stable](006_design_core_principles.html).
 
-When we design code, we follow certain principles. We call them [SOLID](https://en.wikipedia.org/wiki/SOLID). We care about cohesion and coupling, encapsulation, inheritance, polymorphism. We are concerned about [mutability](objects-should-be-immutable.html), [broken inheritance](inheritance-is-procedural.html), many things...
+When we design code, we follow certain principles. We call them [SOLID](https://en.wikipedia.org/wiki/SOLID). We care about cohesion and coupling, encapsulation, inheritance, polymorphism. We are concerned about [mutability](https://www.yegor256.com/2014/06/09/objects-should-be-immutable.html), [broken inheritance](https://www.yegor256.com/2016/09/13/inheritance-is-procedural.html), many things...
 
 But all these principles mean nothing when it is about data.
 
