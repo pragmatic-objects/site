@@ -89,7 +89,7 @@ secondary constructors would be:
 
 Where N is the number of the class implementations. The number is growing with:
 - any new class attribute: this will add a new N to the equation above. Such thing as "new attribute" is less likely to 
-happen with highly-cohesive and single-responcible class like `TeeInput` but still it is possible.
+happen with highly-cohesive and single-responsible class like `TeeInput` but still it is possible.
 - any new subtype of the existing attribute's type---this on the other hand is typical situation for a 
 highly-segregated interfaces like `Input` and `Output`.
 
