@@ -149,7 +149,7 @@ new FracFromString("1/2").equals(
 ); // == true
 ```
 
-More complex example of equivalence we already saw [here](002_never_make_class_final.md):
+More complex example of equivalence we already saw [here](002_never_make_class_final.html):
 
 ```java
 new TeeInputFromUrlToFile(
